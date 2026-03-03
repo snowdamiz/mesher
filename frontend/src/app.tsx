@@ -10,7 +10,7 @@
  * Routes to appropriate page component based on hash.
  */
 import { signal, effect } from '@streeem/core'
-import { Show, render } from './lib/streem-dom'
+import { Show, render } from '@streeem/dom'
 import { api } from './lib/api'
 import { route, navigate } from './lib/router'
 import { LoginPage } from './pages/login'

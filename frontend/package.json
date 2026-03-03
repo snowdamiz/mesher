@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@streeem/core": "0.1.2",
+    "@streeem/dom": "0.1.2",
+    "@streeem/lit": "0.1.2",
     "@streeem/streams": "0.1.2",
     "@lit-ui/input": "^1.0.0",
     "@lit-ui/button": "^1.0.0",

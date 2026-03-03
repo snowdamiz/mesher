@@ -5,7 +5,7 @@
  * Simple single-step wizard: enter org name -> create -> redirect to settings.
  */
 import { signal } from '@streeem/core'
-import { Show } from '../lib/streem-dom'
+import { Show } from '@streeem/dom'
 import { api } from '../lib/api'
 import { navigate } from '../lib/router'
 import '@lit-ui/input'
