@@ -96,6 +96,11 @@ Recent decisions affecting current work:
 - [01-06]: Tier detection via /api/config/tier endpoint with fallback to 'oss'
 - [01-06]: Native tab/dialog implementations instead of lui-tabs/lui-dialog web components (upgrade in Phase 7)
 
+### Roadmap Evolution
+
+- Phase 01.1 inserted after Phase 1: Update project to use Mesh built-in ORM for migrations and queries (URGENT)
+- Phase 01.2 inserted after Phase 1: Reorganize repo with server and client directories (URGENT)
+
 ### Pending Todos
 
 None yet.
@@ -111,5 +116,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 01-06-PLAN.md (auto tasks complete, checkpoint:human-verify pending)
-Resume file: None
+Stopped at: Phase 1.1 context gathered
+Resume file: .planning/phases/01.1-update-project-to-use-mesh-built-in-orm-for-migrations-and-queries/01.1-CONTEXT.md
