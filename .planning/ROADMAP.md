@@ -43,18 +43,20 @@ Plans:
 - [x] 01-02-PLAN.md -- Toolchain spikes (WS actor supervision, PG SET LOCAL, WS reconnect, chart live-update)
 - [x] 01-03-PLAN.md -- Auth system (register, login, logout, sessions, middleware)
 - [x] 01-04-PLAN.md -- Organization management + schema provisioning
-- [ ] 01-05-PLAN.md -- Password reset, Google OAuth, invites, projects, API keys
-- [ ] 01-06-PLAN.md -- Frontend UI (auth pages, org setup wizard, org settings)
+- [x] 01-05-PLAN.md -- Password reset, Google OAuth, invites, projects, API keys
+- [x] 01-06-PLAN.md -- Frontend UI (auth pages, org setup wizard, org settings)
 
 ### Phase 01.2: Reorganize repo with server and client directories (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Reorganize the repository into explicit `server/` and `client/` roots while preserving current runtime behavior, path semantics, and developer workflow
+**Requirements**: N/A (inserted structural phase — no new product requirements)
 **Depends on:** Phase 1
-**Plans:** 0 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 01.2 to break down)
+- [x] 01.2-01-PLAN.md -- Filesystem migration to `server/` + `client/` and server-spike relocation
+- [ ] 01.2-02-PLAN.md -- Compose/Docker/service wiring and root scoped command wrappers
+- [ ] 01.2-03-PLAN.md -- Docs terminology standardization and full regression verification matrix
 
 ### Phase 01.1: Update project to use Mesh built-in ORM for migrations and queries (INSERTED)
 
