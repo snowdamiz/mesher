@@ -9,8 +9,7 @@ from Src.Storage.Queries import authenticate_user, create_session, delete_sessio
 
 # Extract session value from raw cookie substring.
 fn extract_session_value(raw_val :: String) -> String do
-  let has_semi = String.contains(raw_val, ";")
-  if has_semi do
+  if String.contains(raw_val, ";") do
     let parts = String.split(raw_val, ";")
     let first = List.head(parts)
     String.trim(first)
@@ -21,8 +20,7 @@ end
 
 # Parse mesher_session cookie value from cookie header string.
 fn parse_session_cookie(cookie_str :: String) -> String do
-  let has_key = String.contains(cookie_str, "mesher_session=")
-  if has_key do
+  if String.contains(cookie_str, "mesher_session=") do
     let parts = String.split(cookie_str, "mesher_session=")
     let raw_value = List.last(parts)
     extract_session_value(raw_value)
@@ -110,9 +108,7 @@ end
 fn tier_gate(request, next) -> Response do
   let tier = Env.get("MESHER_TIER", "oss")
   let path = Request.path(request)
-  let is_saas_route = String.starts_with(path, "/api/v1/ai/")
-  let is_blocked = is_saas_route && tier != "saas"
-  if is_blocked do
+  if String.starts_with(path, "/api/v1/ai/") && tier != "saas" do
     respond_saas_only()
   else
     next(request)

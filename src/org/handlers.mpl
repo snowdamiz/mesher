@@ -25,7 +25,7 @@ fn do_create_org(pool, request) -> Response!String do
   let body_json = parse_json_body(request)?
   let name = Json.get(body_json, "name")
   let _ = validate_name(name)?
-  let slug = String.replace(String.to_lower(name), " ", "-")
+  let slug = String.replace(String.lower(name), " ", "-")
   let org_id = insert_org(pool, name, slug)?
   let _ = add_member(pool, org_id, user_id, "owner")?
   Ok(HTTP.response(201, json { id: org_id, name: name, slug: slug }))

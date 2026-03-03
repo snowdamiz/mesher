@@ -12,8 +12,7 @@ fn find_session_at_index(pairs, idx :: Int, len :: Int) -> String!String do
   else
     let pair = List.get(pairs, idx)
     let trimmed = String.trim(pair)
-    let is_session = String.starts_with(trimmed, "mesher_session=")
-    if is_session do
+    if String.starts_with(trimmed, "mesher_session=") do
       Ok(String.slice(trimmed, 16, String.length(trimmed)))
     else
       find_session_at_index(pairs, idx + 1, len)

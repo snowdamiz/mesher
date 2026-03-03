@@ -76,8 +76,6 @@ end
 
 # Map error strings from guards to HTTP responses.
 pub fn guard_error(msg :: String) -> Response do
-  let is_bad_request = String.starts_with(msg, "missing ") or String.starts_with(msg, "invalid ") or String.starts_with(msg, "name must")
-  let is_conflict = String.starts_with(msg, "user is already") or String.starts_with(msg, "invite already")
   if msg == "no session cookie" do
     HTTP.response(401, json { error: "unauthorized" })
   else if msg == "not a member" do
@@ -86,9 +84,9 @@ pub fn guard_error(msg :: String) -> Response do
     HTTP.response(403, json { error: "owner required" })
   else if msg == "not found" do
     HTTP.response(404, json { error: "not found" })
-  else if is_bad_request do
+  else if String.starts_with(msg, "missing ") or String.starts_with(msg, "invalid ") or String.starts_with(msg, "name must") do
     HTTP.response(400, json { error: msg })
-  else if is_conflict do
+  else if String.starts_with(msg, "user is already") or String.starts_with(msg, "invite already") do
     HTTP.response(409, json { error: msg })
   else
     HTTP.response(500, json { error: msg })
