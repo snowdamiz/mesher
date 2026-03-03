@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-03T23:21:54.664Z"
+last_updated: "2026-03-03T23:32:13.968Z"
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -18,21 +18,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 01.2 in progress — Plan 01 complete (repo reorganization)
+**Current focus:** Phase 01.2 in progress — Plan 02 complete (compose wiring + root command wrappers)
 
 ## Current Position
 
 Phase: 01.2 of 9 (Reorganize repo with server and client directories) -- IN PROGRESS
-Plan: 1 of 3 in current phase -- PLAN 01 COMPLETE
-Status: Phase 01.2 Plan 01 Complete
-Last activity: 2026-03-03 - Completed 01.2-01 (server/client directory reorganization)
+Plan: 2 of 3 in current phase -- PLAN 02 COMPLETE
+Status: Phase 01.2 Plan 02 Complete
+Last activity: 2026-03-03 - Completed 01.2-02 (compose wiring, root wrappers, and spike ownership split)
 
-Progress: [█████████████████░░░] 85%
+Progress: [██████████████████░░] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 11min
 - Total execution time: 1.8 hours
 
@@ -44,7 +44,7 @@ Progress: [█████████████████░░░] 85%
 | 1.1 - ORM Migration | 4 | 8min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01.1-01 (2min), 01.1-02 (2min), 01.1-03 (2min), 01.1-04 (2min), 01.2-01 (2min)
+- Last 5 plans: 01.1-02 (2min), 01.1-03 (2min), 01.1-04 (2min), 01.2-01 (2min), 01.2-02 (5min)
 - Trend: accelerating
 
 | Plan | Duration | Tasks | Files |
@@ -62,6 +62,7 @@ Progress: [█████████████████░░░] 85%
 
 *Updated after each plan completion*
 | Phase 01.2-reorganize-repo-with-server-and-client-directories P01 | 2min | 2 tasks | 33 files |
+| Phase 01.2-reorganize-repo-with-server-and-client-directories P02 | 5 min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,8 @@ Recent decisions affecting current work:
 - [01.1-04]: Slug generation uses inline String.replace(String.lower(name), " ", "-") rather than a library
 - [Phase 01.2-reorganize-repo-with-server-and-client-directories]: Preserved Mesh module/import paths while relocating backend runtime files into server/.
 - [Phase 01.2-reorganize-repo-with-server-and-client-directories]: Kept client API adapter on relative /api paths during frontend-to-client rename.
+- [Phase 01.2-reorganize-repo-with-server-and-client-directories]: Compose service renamed from app to server with build context anchored at ./server to match ownership boundaries.
+- [Phase 01.2-reorganize-repo-with-server-and-client-directories]: Root package.json remains dependency-light and only provides scoped wrapper scripts for server/client workflows.
 
 ### Roadmap Evolution
 
@@ -143,5 +146,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 01.2-01-PLAN.md
-Resume file: .planning/phases/01.2-reorganize-repo-with-server-and-client-directories/01.2-01-SUMMARY.md
+Stopped at: Completed 01.2-02-PLAN.md
+Resume file: .planning/phases/01.2-reorganize-repo-with-server-and-client-directories/01.2-02-SUMMARY.md

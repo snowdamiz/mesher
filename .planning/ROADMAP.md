@@ -51,11 +51,11 @@ Plans:
 **Goal:** Reorganize the repository into explicit `server/` and `client/` roots while preserving current runtime behavior, path semantics, and developer workflow
 **Requirements**: N/A (inserted structural phase — no new product requirements)
 **Depends on:** Phase 1
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 01.2-01-PLAN.md -- Filesystem migration to `server/` + `client/` and server-spike relocation
-- [ ] 01.2-02-PLAN.md -- Compose/Docker/service wiring and root scoped command wrappers
+- [x] 01.2-02-PLAN.md -- Compose/Docker/service wiring and root scoped command wrappers
 - [ ] 01.2-03-PLAN.md -- Docs terminology standardization and full regression verification matrix
 
 ### Phase 01.1: Update project to use Mesh built-in ORM for migrations and queries (INSERTED)
