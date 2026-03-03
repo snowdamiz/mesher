@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-03T09:04:00Z"
+last_updated: "2026-03-03T09:25:44Z"
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -23,27 +23,27 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 Phase: 1 of 9 (Foundation + Toolchain Spike)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: Executing
-Last activity: 2026-03-03 — Completed 01-04-PLAN.md (org CRUD with schema provisioning)
+Last activity: 2026-03-03 — Completed 01-05-PLAN.md (remaining feature endpoints)
 
-Progress: [███████░░░] 8%
+Progress: [████████░░] 10%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 21min
-- Total execution time: 1.4 hours
+- Total plans completed: 5
+- Average duration: 19min
+- Total execution time: 1.6 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 - Foundation | 4 | 84min | 21min |
+| 1 - Foundation | 5 | 97min | 19min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2min), 01-02 (45min), 01-03 (12min), 01-04 (25min)
+- Last 5 plans: 01-01 (2min), 01-02 (45min), 01-03 (12min), 01-04 (25min), 01-05 (13min)
 - Trend: stabilizing
 
 | Plan | Duration | Tasks | Files |
@@ -52,6 +52,7 @@ Progress: [███████░░░] 8%
 | Phase 01 P02 | 45min | 2 tasks | 8 files |
 | Phase 01 P03 | 35min | 3 tasks | 3 files |
 | Phase 01 P04 | 25min | 1 tasks | 3 files |
+| Phase 01 P05 | 13min | 4 tasks | 8 files |
 
 *Updated after each plan completion*
 
@@ -84,6 +85,11 @@ Recent decisions affecting current work:
 - [01-04]: Bind function call results to variables before if conditions (Mesh parser limitation)
 - [01-04]: JSON.parse returns Json type (use Json.get), not Map type (not Map.get)
 - [01-04]: Org schema provisioning uses DDL with string interpolation (PG DDL cannot use $N params)
+- [01-05]: PG-delegated crypto: encode(digest()) for SHA-256, crypt()/gen_salt() for bcrypt -- Mesh has no Crypto stdlib
+- [01-05]: OAuth token exchange stubbed (Mesh HTTP client API unverified); redirect to Google works fully
+- [01-05]: Meta refresh HTML redirect instead of Location header (Mesh has no response header API)
+- [01-05]: Module files must use single-word names (Mesh import rejects underscores in module paths)
+- [01-05]: Use Pg.query/Pg.execute (not Pool.*) inside with_org_schema callbacks (PgConn vs PoolHandle types)
 
 ### Pending Todos
 
@@ -100,5 +106,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 01-04-PLAN.md
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None

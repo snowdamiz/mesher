@@ -13,16 +13,16 @@
 - [x] **AUTH-01**: Self-hosted user can register an account with email and password
 - [x] **AUTH-02**: User can log in and maintain session across browser refreshes
 - [x] **AUTH-03**: User can log out from any page
-- [ ] **AUTH-04**: Self-hosted user can reset their password via email link
-- [ ] **AUTH-05**: SaaS user can sign in with Google OAuth (SaaS tier only)
+- [x] **AUTH-04**: Self-hosted user can reset their password via email link
+- [x] **AUTH-05**: SaaS user can sign in with Google OAuth (SaaS tier only)
 
 ### ORG — Organizations & Projects
 
 - [ ] **ORG-01**: User can create an organization and become its owner
-- [ ] **ORG-02**: Organization owner can invite members by email
-- [ ] **ORG-03**: Invited user can accept an invitation and join the organization
-- [ ] **ORG-04**: User can create a project scoped to their organization
-- [ ] **ORG-05**: User can generate and revoke API keys / DSNs per project
+- [x] **ORG-02**: Organization owner can invite members by email
+- [x] **ORG-03**: Invited user can accept an invitation and join the organization
+- [x] **ORG-04**: User can create a project scoped to their organization
+- [x] **ORG-05**: User can generate and revoke API keys / DSNs per project
 - [x] **ORG-06**: Each organization is provisioned with its own PostgreSQL schema at signup (schema-per-org isolation)
 
 ### ERR — Error Tracking & Issue Management
@@ -151,13 +151,13 @@ These are **explicitly excluded** from Mesher. Reasons are provided to prevent r
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 1 | Complete |
-| AUTH-04 | Phase 1 | Pending |
-| AUTH-05 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Complete |
+| AUTH-05 | Phase 1 | Complete |
 | ORG-01 | Phase 1 | Pending |
-| ORG-02 | Phase 1 | Pending |
-| ORG-03 | Phase 1 | Pending |
-| ORG-04 | Phase 1 | Pending |
-| ORG-05 | Phase 1 | Pending |
+| ORG-02 | Phase 1 | Complete |
+| ORG-03 | Phase 1 | Complete |
+| ORG-04 | Phase 1 | Complete |
+| ORG-05 | Phase 1 | Complete |
 | ORG-06 | Phase 1 | Complete |
 | DEPLOY-01 | Phase 1 | Complete |
 | DEPLOY-02 | Phase 1 | Complete |
