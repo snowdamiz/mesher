@@ -8,7 +8,8 @@
  *   - SaaS: Google OAuth only
  *   - OSS: Email + password only
  */
-import { signal, Show } from 'streem'
+import { signal } from '@streeem/core'
+import { Show } from '../lib/streem-dom'
 import { api } from '../lib/api'
 import { navigate } from '../lib/router'
 import '@lit-ui/input'

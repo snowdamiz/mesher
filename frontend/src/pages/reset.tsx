@@ -5,7 +5,8 @@
  * 1. Request form: email input, sends reset link.
  * 2. Confirm form (when URL has token param): new password input, confirms reset.
  */
-import { signal, Show } from 'streem'
+import { signal } from '@streeem/core'
+import { Show } from '../lib/streem-dom'
 import { api } from '../lib/api'
 import { navigate, route } from '../lib/router'
 import '@lit-ui/input'

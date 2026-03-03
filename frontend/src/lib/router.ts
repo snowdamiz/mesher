@@ -5,7 +5,7 @@
  *   /login, /register, /reset, /reset-confirm,
  *   /org-setup, /org/:id/settings, /invites/:token
  */
-import { signal, effect } from 'streem'
+import { signal, effect } from '@streeem/core'
 
 export interface RouteMatch {
   path: string

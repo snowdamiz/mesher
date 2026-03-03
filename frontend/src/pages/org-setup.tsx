@@ -4,7 +4,8 @@
  * Per CONTEXT.md: Post-login landing is org setup wizard on first visit.
  * Simple single-step wizard: enter org name -> create -> redirect to settings.
  */
-import { signal, Show } from 'streem'
+import { signal } from '@streeem/core'
+import { Show } from '../lib/streem-dom'
 import { api } from '../lib/api'
 import { navigate } from '../lib/router'
 import '@lit-ui/input'

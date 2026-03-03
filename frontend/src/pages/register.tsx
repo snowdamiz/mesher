@@ -4,7 +4,8 @@
  * Per CONTEXT.md: email + password only (no name field).
  * On success: navigate to org setup wizard.
  */
-import { signal, Show } from 'streem'
+import { signal } from '@streeem/core'
+import { Show } from '../lib/streem-dom'
 import { api } from '../lib/api'
 import { navigate } from '../lib/router'
 import '@lit-ui/input'

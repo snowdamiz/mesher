@@ -1,8 +1,0 @@
-{
-  "name": "@lit-ui/tabs",
-  "version": "0.0.0-stub",
-  "description": "Local stub for LitUI tabs web component.",
-  "type": "module",
-  "main": "index.js",
-  "types": "index.d.ts"
-}

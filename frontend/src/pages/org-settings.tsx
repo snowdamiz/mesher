@@ -9,7 +9,8 @@
  * Per plan: uses lui-tabs, lui-input, lui-button, lui-dialog, lui-toast.
  * All object/array properties use prop: binding (per anti-patterns in research).
  */
-import { signal, Show, effect } from 'streem'
+import { signal, effect } from '@streeem/core'
+import { Show } from '../lib/streem-dom'
 import { api } from '../lib/api'
 import { navigate } from '../lib/router'
 import '@lit-ui/tabs'

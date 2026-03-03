@@ -9,12 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "streem": "file:vendor/streem",
-    "@lit-ui/input": "file:vendor/lit-ui-input",
-    "@lit-ui/button": "file:vendor/lit-ui-button",
-    "@lit-ui/dialog": "file:vendor/lit-ui-dialog",
-    "@lit-ui/toast": "file:vendor/lit-ui-toast",
-    "@lit-ui/tabs": "file:vendor/lit-ui-tabs"
+    "@streeem/core": "0.1.2",
+    "@streeem/streams": "0.1.2",
+    "@lit-ui/input": "^1.0.0",
+    "@lit-ui/button": "^1.0.0",
+    "@lit-ui/dialog": "^1.0.0",
+    "@lit-ui/toast": "^1.0.0",
+    "@lit-ui/tabs": "^1.0.0"
   },
   "devDependencies": {
     "vite": "latest",
