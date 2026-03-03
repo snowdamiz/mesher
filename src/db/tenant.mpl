@@ -7,6 +7,18 @@
 # The search_path always includes 'public' to ensure TimescaleDB extensions
 # and shared tables remain accessible (see Pitfall 6 in research).
 
+fn commit_and_checkin(pool, conn, val) do
+  let _ = Pg.commit(conn)?
+  Pool.checkin(pool, conn)
+  Ok(val)
+end
+
+fn rollback_and_checkin(pool, conn, err) do
+  let _ = Pg.rollback(conn)?
+  Pool.checkin(pool, conn)
+  Err(err)
+end
+
 # Execute a query function within the context of an org's schema.
 # Wraps the operation in a transaction with SET LOCAL search_path.
 #
@@ -22,14 +34,8 @@ fn with_org_schema(pool, org_id :: String, query_fn) do
   let result = query_fn(conn)
 
   case result do
-    Ok(val) ->
-      let _ = Pg.commit(conn)?
-      Pool.checkin(pool, conn)
-      Ok(val)
-    Err(e) ->
-      let _ = Pg.rollback(conn)?
-      Pool.checkin(pool, conn)
-      Err(e)
+    Ok(val) -> commit_and_checkin(pool, conn, val)
+    Err(e) -> rollback_and_checkin(pool, conn, e)
   end
 end
 
