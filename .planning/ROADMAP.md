@@ -64,7 +64,7 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 01.1-01-PLAN.md -- Model struct definitions (types/) and fresh ORM migration
+- [x] 01.1-01-PLAN.md -- Model struct definitions (types/) and fresh ORM migration
 - [ ] 01.1-02-PLAN.md -- Centralized storage/queries.mpl and remove schema-per-org
 - [ ] 01.1-03-PLAN.md -- Auth module conversion (session, reset, oauth, cookies)
 - [ ] 01.1-04-PLAN.md -- Org/project handler conversion and main.mpl cleanup
@@ -162,6 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Toolchain Spike | 4/6 | In Progress | - |
+| 1.1. ORM Migration (INSERTED) | 1/4 | In Progress | - |
 | 2. Error Ingestion Core | 0/TBD | Not started | - |
 | 3. Issue Management + REST API | 0/TBD | Not started | - |
 | 4. Metrics Ingestion + Dashboards | 0/TBD | Not started | - |

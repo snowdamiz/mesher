@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-03T09:39:40.291Z"
+last_updated: "2026-03-03T19:17:16Z"
 progress:
-  total_phases: 1
+  total_phases: 2
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 10
+  completed_plans: 7
 ---
 
 # Project State
@@ -18,22 +18,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 1 — Foundation + Toolchain Spike
+**Current focus:** Phase 1.1 — Update project to use Mesh built-in ORM
 
 ## Current Position
 
-Phase: 1 of 9 (Foundation + Toolchain Spike)
-Plan: 6 of 6 in current phase (PHASE COMPLETE)
-Status: Checkpoint pending (01-06 Task 3: human-verify)
-Last activity: 2026-03-03 — Completed 01-06-PLAN.md auto tasks (frontend UI)
+Phase: 1.1 of 9 (Update project to use Mesh built-in ORM)
+Plan: 1 of 4 in current phase
+Status: Executing
+Last activity: 2026-03-03 — Completed 01.1-01-PLAN.md (model structs + ORM migration)
 
-Progress: [██████████] 11%
+Progress: [███████████░░░░░░░░░] 13%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 17min
+- Total plans completed: 7
+- Average duration: 16min
 - Total execution time: 1.7 hours
 
 **By Phase:**
@@ -41,9 +41,10 @@ Progress: [██████████] 11%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 - Foundation | 6 | 104min | 17min |
+| 1.1 - ORM Migration | 1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (45min), 01-03 (12min), 01-04 (25min), 01-05 (13min), 01-06 (7min)
+- Last 5 plans: 01-03 (12min), 01-04 (25min), 01-05 (13min), 01-06 (7min), 01.1-01 (2min)
 - Trend: accelerating
 
 | Plan | Duration | Tasks | Files |
@@ -54,6 +55,7 @@ Progress: [██████████] 11%
 | Phase 01 P04 | 25min | 1 tasks | 3 files |
 | Phase 01 P05 | 13min | 4 tasks | 8 files |
 | Phase 01 P06 | 7min | 2 tasks | 35 files |
+| Phase 01.1 P01 | 2min | 2 tasks | 5 files |
 
 *Updated after each plan completion*
 
@@ -95,6 +97,10 @@ Recent decisions affecting current work:
 - [01-06]: Hash-based routing (#/path) for Phase 1 frontend (no server-side routing needed)
 - [01-06]: Tier detection via /api/config/tier endpoint with fallback to 'oss'
 - [01-06]: Native tab/dialog implementations instead of lui-tabs/lui-dialog web components (upgrade in Phase 7)
+- [01.1-01]: ApiKey keeps key_hash/key_prefix security model (SHA-256 hash) instead of reference project cleartext key_value
+- [01.1-01]: password_hash excluded from User struct (never expose to app code; queried directly in auth SQL)
+- [01.1-01]: Organization uses slug instead of schema_name/owner_id -- schema-per-org eliminated in favor of org_id FK filtering
+- [01.1-01]: org_memberships uses raw Pool.execute for composite UNIQUE(user_id, org_id); all other 7 tables use Migration.create_table DSL
 
 ### Roadmap Evolution
 
@@ -116,5 +122,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Phase 1.1 context gathered
-Resume file: .planning/phases/01.1-update-project-to-use-mesh-built-in-orm-for-migrations-and-queries/01.1-CONTEXT.md
+Stopped at: Completed 01.1-01-PLAN.md (model structs + ORM migration)
+Resume file: .planning/phases/01.1-update-project-to-use-mesh-built-in-orm-for-migrations-and-queries/01.1-01-SUMMARY.md
