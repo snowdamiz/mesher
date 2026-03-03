@@ -6,9 +6,9 @@ import Mail.Sender
 # Tokens are hashed with SHA-256 before storage; raw tokens are sent in emails.
 # On confirmation, all user sessions are invalidated to force re-login.
 #
-# CRYPTO NOTE: Mesh has no Crypto stdlib. All crypto operations are delegated
-# to PostgreSQL: gen_random_uuid() for token generation, encode(digest()) for
-# SHA-256 hashing, crypt() for password hashing via pgcrypto.
+# CRYPTO NOTE: Mesh Crypto stdlib provides uuid4(), sha256(), sha512(), hmac.
+# UUID and SHA-256 use native Mesh Crypto. bcrypt password hashing is delegated
+# to PostgreSQL pgcrypto crypt()/gen_salt() since bcrypt is not in Mesh stdlib.
 #
 # Functions MUST be defined before use (no forward references).
 # Case arm expressions MUST be on same line as -> (no multi-line bodies).
@@ -31,27 +31,18 @@ end
 
 fn insert_reset_token(pool, user_id :: String, email :: String, token :: String, token_hash :: String) -> Response do
   let _ = Pool.execute(pool, "UPDATE password_reset_tokens SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL", [user_id])
-  let insert_result = Pool.execute(pool, "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at) VALUES (gen_random_uuid(), $1, $2, NOW() + INTERVAL '1 hour')", [user_id, token_hash])
+  let reset_id = Crypto.uuid4()
+  let insert_result = Pool.execute(pool, "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, NOW() + INTERVAL '1 hour')", [reset_id, user_id, token_hash])
   case insert_result do
     Err(_) -> reset_success_response()
     Ok(_) -> send_reset_email(email, token)
   end
 end
 
-fn hash_token_and_store(pool, user_id :: String, email :: String, token :: String) -> Response do
-  let hash_result = Pool.query(pool, "SELECT encode(digest($1, 'sha256'), 'hex') AS token_hash", [token])
-  case hash_result do
-    Err(_) -> reset_success_response()
-    Ok(hash_rows) -> insert_reset_token(pool, user_id, email, token, Map.get(List.head(hash_rows), "token_hash"))
-  end
-end
-
 fn generate_token_and_store(pool, user_id :: String, email :: String) -> Response do
-  let gen_result = Pool.query(pool, "SELECT gen_random_uuid()::text AS token", [])
-  case gen_result do
-    Err(_) -> reset_success_response()
-    Ok(gen_rows) -> hash_token_and_store(pool, user_id, email, Map.get(List.head(gen_rows), "token"))
-  end
+  let token = Crypto.uuid4()
+  let token_hash = Crypto.sha256(token)
+  insert_reset_token(pool, user_id, email, token, token_hash)
 end
 
 fn handle_user_lookup(pool, email :: String, rows) -> Response do
@@ -117,11 +108,8 @@ fn hash_new_password(pool, user_id :: String, token_id :: String, new_password :
 end
 
 fn generate_salt_and_hash(pool, user_id :: String, token_id :: String, new_password :: String) -> Response do
-  let salt_result = Pool.query(pool, "SELECT gen_random_uuid()::text AS new_salt", [])
-  case salt_result do
-    Err(_) -> HTTP.response(500, json { error: "password reset failed" })
-    Ok(salt_rows) -> hash_new_password(pool, user_id, token_id, new_password, Map.get(List.head(salt_rows), "new_salt"))
-  end
+  let new_salt = Crypto.uuid4()
+  hash_new_password(pool, user_id, token_id, new_password, new_salt)
 end
 
 fn check_token_rows(pool, token_rows, new_password :: String) -> Response do
@@ -142,11 +130,8 @@ fn lookup_token(pool, token_hash :: String, new_password :: String) -> Response 
 end
 
 fn validate_token(pool, token :: String, new_password :: String) -> Response do
-  let hash_result = Pool.query(pool, "SELECT encode(digest($1, 'sha256'), 'hex') AS token_hash", [token])
-  case hash_result do
-    Err(_) -> HTTP.response(400, json { error: "invalid or expired token" })
-    Ok(hash_rows) -> lookup_token(pool, Map.get(List.head(hash_rows), "token_hash"), new_password)
-  end
+  let token_hash = Crypto.sha256(token)
+  lookup_token(pool, token_hash, new_password)
 end
 
 fn parse_confirm_body(pool, body_json) -> Response do

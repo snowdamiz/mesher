@@ -2,8 +2,9 @@
 # (AUTH-01, AUTH-02, AUTH-03)
 #
 # Sessions are stored in the public.sessions table with a 24-hour expiry.
-# UUID generation and bcrypt verification are delegated to PostgreSQL
-# (gen_random_uuid and pgcrypto crypt) because Mesh lacks a Crypto stdlib.
+# UUID generation uses Mesh's native Crypto.uuid4().
+# bcrypt password verification is delegated to PostgreSQL pgcrypto crypt()
+# because bcrypt is not available in Mesh stdlib (sha256/sha512/hmac are).
 #
 # KNOWN LIMITATION: Mesh HTTP stdlib has no response header API.
 # HTTP.set_header, HTTP.header, HTTP.with_header, HTTP.add_header,
@@ -122,11 +123,12 @@ fn handle_verified_rows(pool, rows) -> Response do
     let email = Map.get(user_row, "email")
     let user_id = Map.get(user_row, "id")
     let _ = cleanup_expired(pool)
-    let insert_result = Pool.query(pool,
-      "INSERT INTO sessions (id, user_id, expires_at) VALUES (gen_random_uuid(), $1, NOW() + INTERVAL '24 hours') RETURNING id::text",
-      [user_id])
+    let session_id = Crypto.uuid4()
+    let insert_result = Pool.execute(pool,
+      "INSERT INTO sessions (id, user_id, expires_at) VALUES ($1, $2, NOW() + INTERVAL '24 hours')",
+      [session_id, user_id])
     case insert_result do
-      Ok(sid_rows) -> HTTP.response(200, json { email: email, session_id: Map.get(List.head(sid_rows), "id") })
+      Ok(_) -> HTTP.response(200, json { email: email, session_id: session_id })
       Err(_e) -> HTTP.response(500, json { error: "session creation failed" })
     end
   else

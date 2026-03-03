@@ -83,11 +83,9 @@ fn do_insert_invite(pool, org_id :: String, email :: String, user_id :: String, 
 end
 
 fn insert_invite(pool, org_id :: String, email :: String, user_id :: String, org_name :: String) -> Response do
-  let gen_result = Pool.query(pool, "SELECT gen_random_uuid()::text AS invite_id, gen_random_uuid()::text AS token", [])
-  case gen_result do
-    Err(_) -> HTTP.response(500, json { error: "failed to generate invite" })
-    Ok(gen_rows) -> do_insert_invite(pool, org_id, email, user_id, org_name, Map.get(List.head(gen_rows), "invite_id"), Map.get(List.head(gen_rows), "token"))
-  end
+  let invite_id = Crypto.uuid4()
+  let token = Crypto.uuid4()
+  do_insert_invite(pool, org_id, email, user_id, org_name, invite_id, token)
 end
 
 fn check_pending_count(pool, org_id :: String, email :: String, user_id :: String, org_name :: String, pending_rows) -> Response do
@@ -215,11 +213,8 @@ fn insert_membership_and_accept(pool, invite_id :: String, org_id :: String, use
 end
 
 fn complete_accept(pool, invite_id :: String, org_id :: String, user_id :: String) -> Response do
-  let mem_id_result = Pool.query(pool, "SELECT gen_random_uuid()::text AS mem_id", [])
-  case mem_id_result do
-    Err(_) -> HTTP.response(500, json { error: "failed to accept invite" })
-    Ok(mem_id_rows) -> insert_membership_and_accept(pool, invite_id, org_id, user_id, Map.get(List.head(mem_id_rows), "mem_id"))
-  end
+  let mem_id = Crypto.uuid4()
+  insert_membership_and_accept(pool, invite_id, org_id, user_id, mem_id)
 end
 
 fn check_invite_found(pool, invite_rows, user_id :: String) -> Response do

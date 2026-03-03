@@ -102,11 +102,8 @@ fn insert_project(pool, org_id :: String, name :: String, project_id :: String) 
 end
 
 fn create_project_in_schema(pool, org_id :: String, name :: String) -> Response do
-  let id_result = Pool.query(pool, "SELECT gen_random_uuid()::text AS project_id", [])
-  case id_result do
-    Err(_) -> HTTP.response(500, json { error: "failed to generate project ID" })
-    Ok(id_rows) -> insert_project(pool, org_id, name, Map.get(List.head(id_rows), "project_id"))
-  end
+  let project_id = Crypto.uuid4()
+  insert_project(pool, org_id, name, project_id)
 end
 
 fn validate_project_name_max(pool, org_id :: String, name :: String, len :: Int) -> Response do
@@ -228,19 +225,14 @@ end
 
 fn hash_and_insert_key(pool, org_id :: String, project_id :: String, label :: String, raw_key :: String, key_id :: String) -> Response do
   let key_prefix = String.slice(raw_key, 0, 8)
-  let hash_result = Pool.query(pool, "SELECT encode(digest($1, 'sha256'), 'hex') AS key_hash", [raw_key])
-  case hash_result do
-    Err(_) -> HTTP.response(500, json { error: "failed to hash API key" })
-    Ok(hash_rows) -> insert_api_key(pool, org_id, project_id, label, raw_key, key_prefix, Map.get(List.head(hash_rows), "key_hash"), key_id)
-  end
+  let key_hash = Crypto.sha256(raw_key)
+  insert_api_key(pool, org_id, project_id, label, raw_key, key_prefix, key_hash, key_id)
 end
 
 fn generate_api_key(pool, org_id :: String, project_id :: String, label :: String) -> Response do
-  let gen_result = Pool.query(pool, "SELECT gen_random_uuid()::text AS raw_key, gen_random_uuid()::text AS key_id", [])
-  case gen_result do
-    Err(_) -> HTTP.response(500, json { error: "failed to generate API key" })
-    Ok(gen_rows) -> hash_and_insert_key(pool, org_id, project_id, label, Map.get(List.head(gen_rows), "raw_key"), Map.get(List.head(gen_rows), "key_id"))
-  end
+  let raw_key = Crypto.uuid4()
+  let key_id = Crypto.uuid4()
+  hash_and_insert_key(pool, org_id, project_id, label, raw_key, key_id)
 end
 
 fn parse_api_key_body(pool, org_id :: String, project_id :: String, request) -> Response do

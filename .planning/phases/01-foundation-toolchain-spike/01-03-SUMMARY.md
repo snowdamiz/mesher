@@ -19,8 +19,8 @@ affects: [01-04, 01-05, 01-06, 02-error-ingestion, all-authenticated-features]
 
 # Tech tracking
 tech-stack:
-  added: [pgcrypto, gen_random_uuid]
-  patterns: [PG-delegated crypto, single-file architecture, explicit case matching]
+  added: [pgcrypto, Crypto.uuid4, Crypto.sha256]
+  patterns: [native Mesh Crypto for UUID/SHA-256, pgcrypto for bcrypt only, single-file architecture, explicit case matching]
 
 key-files:
   created:
@@ -30,7 +30,7 @@ key-files:
     - src/main.mpl
 
 key-decisions:
-  - "PG-delegated crypto: gen_random_uuid() for session IDs, crypt() for password verification -- Mesh has no Crypto stdlib"
+  - "Native Crypto.uuid4() for session IDs, pgcrypto crypt() for bcrypt password verification (bcrypt not in Mesh stdlib; sha256/sha512/uuid4 are available)"
   - "Single-file architecture: Mesh has no cross-file function visibility (import/module systems non-functional) -- all route handlers must live in same file as router"
   - "No HTTP response headers: Mesh HTTP stdlib has no set_header API -- session_id returned in JSON body instead of Set-Cookie header"
   - "Explicit case matching: Avoided ? operator to prevent Result type pollution across function boundaries"
@@ -86,7 +86,7 @@ Each task was committed atomically:
 
 ## Decisions Made
 
-1. **PG-delegated crypto** -- Mesh has no Crypto stdlib (no UUID, no bcrypt, no HMAC). Delegated all crypto to PostgreSQL: gen_random_uuid() for session IDs, pgcrypto crypt() for password verification. This is a spike discovery that will inform future phases.
+1. **Crypto strategy** -- Mesh Crypto stdlib provides uuid4(), sha256(), sha512(), hmac_sha256(), hmac_sha512(), secure_compare(). UUID generation and SHA-256 hashing use native Mesh Crypto. bcrypt password verification is delegated to PostgreSQL pgcrypto crypt() since bcrypt is not available in Mesh stdlib.
 
 2. **Single-file architecture** -- Mesh's import system, module declarations, and implicit file merging all fail to resolve functions across files. The `import Auth.Session` pattern and bare `handle_login()` cross-file calls both produce "undefined variable" errors. All route handlers must be defined in the same file as the router. session.mpl is kept as a standalone reference module.
 
@@ -146,7 +146,7 @@ None - no external service configuration required. The pgcrypto extension is ena
 ## Next Phase Readiness
 - Auth system foundation is complete with all core functions
 - Session store, middleware, and tier gate are ready for use by subsequent plans
-- Key Mesh limitations documented: no cross-file refs, no response headers, no Crypto stdlib
+- Key Mesh limitations documented: no cross-file refs, no response headers, no bcrypt in Crypto stdlib
 - The response header limitation means production cookie-based auth will need either a Mesh runtime enhancement or a reverse proxy solution (nginx Set-Cookie injection)
 - Organization management (plan 01-04) can build on this auth foundation
 

@@ -20,8 +20,8 @@ affects: [02-data-pipeline-core, 03-query-engine]
 
 # Tech tracking
 tech-stack:
-  added: [pgcrypto-sha256, gen_random_uuid, meta-refresh-redirect]
-  patterns: [pg-delegated-crypto, single-word-module-names, pub-fn-cross-module, bottom-up-function-ordering]
+  added: [Crypto.uuid4, Crypto.sha256, pgcrypto-bcrypt, meta-refresh-redirect]
+  patterns: [native-mesh-crypto, pgcrypto-for-bcrypt-only, single-word-module-names, pub-fn-cross-module, bottom-up-function-ordering]
 
 key-files:
   created:
@@ -36,7 +36,7 @@ key-files:
     - src/db/tenant.mpl
 
 key-decisions:
-  - "PG-delegated crypto for all hashing (encode/digest for SHA-256, crypt/gen_salt for bcrypt) since Mesh has no Crypto stdlib"
+  - "Native Mesh Crypto for UUID/SHA-256 (Crypto.uuid4, Crypto.sha256), pgcrypto crypt/gen_salt for bcrypt only (bcrypt not in Mesh stdlib)"
   - "OAuth callback stubs token exchange (Mesh HTTP client API unverified) -- redirect to Google works fully"
   - "Meta refresh HTML redirect instead of Location header (Mesh has no response header API)"
   - "Module files renamed to single words (Mesh import system does not support underscores in module names)"
@@ -44,7 +44,7 @@ key-decisions:
   - "Mock email sender logs to stdout (real SMTP/API integration deferred to later phase)"
 
 patterns-established:
-  - "PG-delegated crypto: use encode(digest($1, 'sha256'), 'hex') for token hashing"
+  - "Native Mesh Crypto: use Crypto.sha256() for token hashing, Crypto.uuid4() for ID generation"
   - "Single-word module names: Mesh imports require e.g. Org.Invites not Org.Invite_handlers"
   - "Tenant-scoped operations: use Pg.query/Pg.execute (not Pool.*) inside with_org_schema callbacks"
   - "API key pattern: raw key shown once, stored as SHA-256 hash, prefix for display"
@@ -97,7 +97,7 @@ Each task was committed atomically:
 - `src/db/tenant.mpl` - Added pub to with_org_schema for cross-module access
 
 ## Decisions Made
-- **PG-delegated crypto:** Used PostgreSQL's encode(digest()) for SHA-256 and crypt()/gen_salt() for bcrypt since Mesh has no Crypto stdlib. This is consistent with the pattern established in Plan 03.
+- **Crypto strategy:** Uses native Mesh Crypto.uuid4() for UUID generation and Crypto.sha256() for token hashing. Only bcrypt password hashing is delegated to PostgreSQL pgcrypto crypt()/gen_salt() since bcrypt is not available in Mesh stdlib.
 - **OAuth callback stub:** The token exchange with Google requires an HTTP client. Mesh's HTTP client API (Http.get/Http.post) is unverified and fails to compile. The OAuth start endpoint (redirect to Google) works fully. The callback validates CSRF state but returns 501 for the actual token exchange until the HTTP client is confirmed.
 - **Meta refresh redirect:** Since Mesh's HTTP.response has no header API, OAuth redirects use HTML meta refresh tags instead of Location headers.
 - **Single-word module names:** Mesh's import system does not support underscores in module names. Files were renamed from invite_handlers.mpl to invites.mpl and project_handlers.mpl to projects.mpl.
@@ -114,12 +114,8 @@ Each task was committed atomically:
 - **Files modified:** src/mail/sender.mpl
 - **Committed in:** f4d7cfc (Task 1 commit)
 
-**2. [Rule 3 - Blocking] Replaced Crypto.uuid4/sha256 with PG functions**
-- **Found during:** Task 1 (password reset)
-- **Issue:** Plan used Crypto.uuid4() and Crypto.sha256() but Mesh has no Crypto stdlib (discovered in Plan 03)
-- **Fix:** Used gen_random_uuid()::text and encode(digest($1, 'sha256'), 'hex') via PG queries
-- **Files modified:** src/auth/reset.mpl, src/auth/oauth.mpl, src/project/projects.mpl
-- **Committed in:** f4d7cfc, a06cfcc
+**2. [Retracted] Prior workaround replaced Crypto.uuid4/sha256 with PG functions**
+- **Note:** This deviation was based on an incorrect assumption that Mesh has no Crypto stdlib. Mesh DOES have Crypto.uuid4(), Crypto.sha256(), etc. The PG workarounds were reverted to use native Mesh Crypto in a subsequent fix commit.
 
 **3. [Rule 3 - Blocking] Stubbed OAuth token exchange (HTTP client unavailable)**
 - **Found during:** Task 1 (OAuth callback)

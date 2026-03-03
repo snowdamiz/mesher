@@ -44,11 +44,12 @@ fn handle_verified_rows(pool, rows) -> Response do
     let email = Map.get(user_row, "email")
     let user_id = Map.get(user_row, "id")
     let _ = Pool.execute(pool, "DELETE FROM sessions WHERE expires_at < NOW()", [])
-    let insert_result = Pool.query(pool,
-      "INSERT INTO sessions (id, user_id, expires_at) VALUES (gen_random_uuid(), $1, NOW() + INTERVAL '24 hours') RETURNING id::text",
-      [user_id])
+    let session_id = Crypto.uuid4()
+    let insert_result = Pool.execute(pool,
+      "INSERT INTO sessions (id, user_id, expires_at) VALUES ($1, $2, NOW() + INTERVAL '24 hours')",
+      [session_id, user_id])
     case insert_result do
-      Ok(sid_rows) -> HTTP.response(200, json { email: email, session_id: Map.get(List.head(sid_rows), "id") })
+      Ok(_) -> HTTP.response(200, json { email: email, session_id: session_id })
       Err(_e) -> HTTP.response(500, json { error: "session creation failed" })
     end
   else

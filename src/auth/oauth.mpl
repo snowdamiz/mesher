@@ -17,7 +17,8 @@
 # For Phase 1, the OAuth start endpoint (redirect to Google) works fully.
 # The callback stub processes code + state and demonstrates the full flow.
 #
-# CRYPTO NOTE: Mesh has no Crypto stdlib. UUID generation delegated to PG.
+# CRYPTO NOTE: Mesh Crypto stdlib provides uuid4(), sha256(), etc.
+# UUID generation uses native Crypto.uuid4(). bcrypt delegated to pgcrypto.
 #
 # Functions MUST be defined before use (no forward references).
 # Case arm expressions MUST be on same line as -> (no multi-line bodies).
@@ -53,11 +54,8 @@ fn store_state_and_redirect(pool, state :: String) -> Response do
 end
 
 fn generate_state_and_redirect(pool) -> Response do
-  let state_result = Pool.query(pool, "SELECT gen_random_uuid()::text AS state", [])
-  case state_result do
-    Err(_) -> HTTP.response(500, json { error: "failed to generate OAuth state" })
-    Ok(state_rows) -> store_state_and_redirect(pool, Map.get(List.head(state_rows), "state"))
-  end
+  let state = Crypto.uuid4()
+  store_state_and_redirect(pool, state)
 end
 
 # GET /api/auth/oauth/google
@@ -76,15 +74,20 @@ end
 # ---------------------------------------------------------------------------
 
 fn create_oauth_session_response(pool, user_id :: String) -> Response do
-  let session_result = Pool.query(pool, "INSERT INTO sessions (id, user_id, expires_at) VALUES (gen_random_uuid(), $1, NOW() + INTERVAL '24 hours') RETURNING id::text", [user_id])
+  let session_id = Crypto.uuid4()
+  let session_result = Pool.execute(pool, "INSERT INTO sessions (id, user_id, expires_at) VALUES ($1, $2, NOW() + INTERVAL '24 hours')", [session_id, user_id])
   case session_result do
     Err(_) -> HTTP.response(500, json { error: "session creation failed" })
-    Ok(sid_rows) -> HTTP.response(200, json { status: "authenticated", session_id: Map.get(List.head(sid_rows), "id"), redirect: "/" })
+    Ok(_) -> HTTP.response(200, json { status: "authenticated", session_id: session_id, redirect: "/" })
   end
 end
 
+# bcrypt not available in Mesh stdlib, delegated to pgcrypto for password hashing
 fn create_new_oauth_user(pool, email :: String) -> Response do
-  let create_result = Pool.query(pool, "INSERT INTO users (id, email, password_hash, password_salt, created_at, updated_at) VALUES (gen_random_uuid()::text, $1, crypt(gen_random_uuid()::text, gen_salt('bf')), gen_random_uuid()::text, NOW(), NOW()) RETURNING id", [email])
+  let user_id = Crypto.uuid4()
+  let random_pw = Crypto.uuid4()
+  let random_salt = Crypto.uuid4()
+  let create_result = Pool.query(pool, "INSERT INTO users (id, email, password_hash, password_salt, created_at, updated_at) VALUES ($1, $2, crypt($3, gen_salt('bf')), $4, NOW(), NOW()) RETURNING id", [user_id, email, random_pw, random_salt])
   case create_result do
     Err(_) -> HTTP.response(500, json { error: "account creation failed" })
     Ok(new_rows) -> create_oauth_session_response(pool, Map.get(List.head(new_rows), "id"))

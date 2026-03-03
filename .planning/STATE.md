@@ -76,7 +76,7 @@ Recent decisions affecting current work:
 - [Phase 01]: Ws.serve must be wrapped in separate function from spawn to avoid Pid type inference bleed
 - [Phase 01]: on_message and on_close callbacks must return () explicitly (not Int from Ws.send)
 - [Phase 01]: Case arm expressions must be on same line as -> (no multi-line bodies)
-- [01-03]: PG-delegated crypto: gen_random_uuid() for session IDs, pgcrypto crypt() for password verification (Mesh has no Crypto stdlib)
+- [01-03]: Native Crypto.uuid4() for session IDs, pgcrypto crypt() for bcrypt password verification (bcrypt not in Mesh stdlib; sha256/sha512/uuid4 are available)
 - [01-03]: Mesh has no cross-file function visibility (import/module both fail) -- all route handlers must live in same file as router
 - [01-03]: Mesh HTTP stdlib has no response header API (no set_header/header/with_header) -- session ID returned in JSON body
 - [01-03]: Avoid ? operator in handler functions to prevent Result type pollution; use explicit case matching
@@ -86,7 +86,7 @@ Recent decisions affecting current work:
 - [01-04]: Bind function call results to variables before if conditions (Mesh parser limitation)
 - [01-04]: JSON.parse returns Json type (use Json.get), not Map type (not Map.get)
 - [01-04]: Org schema provisioning uses DDL with string interpolation (PG DDL cannot use $N params)
-- [01-05]: PG-delegated crypto: encode(digest()) for SHA-256, crypt()/gen_salt() for bcrypt -- Mesh has no Crypto stdlib
+- [01-05]: Native Crypto.sha256() for token hashing, Crypto.uuid4() for IDs, pgcrypto crypt()/gen_salt() for bcrypt only (bcrypt not in Mesh stdlib)
 - [01-05]: OAuth token exchange stubbed (Mesh HTTP client API unverified); redirect to Google works fully
 - [01-05]: Meta refresh HTML redirect instead of Location header (Mesh has no response header API)
 - [01-05]: Module files must use single-word names (Mesh import rejects underscores in module paths)
