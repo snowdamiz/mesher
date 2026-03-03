@@ -136,7 +136,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Toolchain Spike | 0/6 | Planned | - |
+| 1. Foundation + Toolchain Spike | 2/6 | In Progress | - |
 | 2. Error Ingestion Core | 0/TBD | Not started | - |
 | 3. Issue Management + REST API | 0/TBD | Not started | - |
 | 4. Metrics Ingestion + Dashboards | 0/TBD | Not started | - |
