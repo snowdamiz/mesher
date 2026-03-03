@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-03T19:17:16Z"
+last_updated: "2026-03-03T19:23:12Z"
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -23,17 +23,17 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 Phase: 1.1 of 9 (Update project to use Mesh built-in ORM)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: Executing
-Last activity: 2026-03-03 — Completed 01.1-01-PLAN.md (model structs + ORM migration)
+Last activity: 2026-03-03 — Completed 01.1-02-PLAN.md (centralized ORM queries + remove schema-per-org)
 
-Progress: [███████████░░░░░░░░░] 13%
+Progress: [████████████░░░░░░░░] 15%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 16min
+- Total plans completed: 8
+- Average duration: 14min
 - Total execution time: 1.7 hours
 
 **By Phase:**
@@ -41,10 +41,10 @@ Progress: [███████████░░░░░░░░░] 13%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 - Foundation | 6 | 104min | 17min |
-| 1.1 - ORM Migration | 1 | 2min | 2min |
+| 1.1 - ORM Migration | 2 | 4min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (12min), 01-04 (25min), 01-05 (13min), 01-06 (7min), 01.1-01 (2min)
+- Last 5 plans: 01-04 (25min), 01-05 (13min), 01-06 (7min), 01.1-01 (2min), 01.1-02 (2min)
 - Trend: accelerating
 
 | Plan | Duration | Tasks | Files |
@@ -56,6 +56,7 @@ Progress: [███████████░░░░░░░░░] 13%
 | Phase 01 P05 | 13min | 4 tasks | 8 files |
 | Phase 01 P06 | 7min | 2 tasks | 35 files |
 | Phase 01.1 P01 | 2min | 2 tasks | 5 files |
+| Phase 01.1 P02 | 2min | 2 tasks | 3 files |
 
 *Updated after each plan completion*
 
@@ -101,6 +102,9 @@ Recent decisions affecting current work:
 - [01.1-01]: password_hash excluded from User struct (never expose to app code; queried directly in auth SQL)
 - [01.1-01]: Organization uses slug instead of schema_name/owner_id -- schema-per-org eliminated in favor of org_id FK filtering
 - [01.1-01]: org_memberships uses raw Pool.execute for composite UNIQUE(user_id, org_id); all other 7 tables use Migration.create_table DSL
+- [01.1-02]: Return Map<String, String> from query functions (not struct types) for flexibility -- handlers construct structs if needed
+- [01.1-02]: OAuth state stored as session rows with 'oauth_state_' prefix and placeholder UUID user_id
+- [01.1-02]: tenant.mpl and schema.mpl kept as comment stubs (not deleted) to avoid import errors until Plans 03/04 update callers
 
 ### Roadmap Evolution
 
@@ -122,5 +126,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 01.1-01-PLAN.md (model structs + ORM migration)
-Resume file: .planning/phases/01.1-update-project-to-use-mesh-built-in-orm-for-migrations-and-queries/01.1-01-SUMMARY.md
+Stopped at: Completed 01.1-02-PLAN.md (centralized ORM queries + remove schema-per-org)
+Resume file: .planning/phases/01.1-update-project-to-use-mesh-built-in-orm-for-migrations-and-queries/01.1-02-SUMMARY.md
