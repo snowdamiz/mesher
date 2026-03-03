@@ -1,0 +1,318 @@
+<!--
+  LitUI Chart Live Update Spike Test
+
+  Purpose: Prove that LitUI chart pushData() sustains smooth rendering
+  during continuous live data updates at high input rates.
+
+  Prerequisites:
+    - No server needed. Open this file directly in a browser.
+    - open spikes/chart_live_update.test.html
+
+  Test flow:
+    1. Page loads and creates a canvas-based line chart
+    2. Click "Start Test" to begin pushing data at ~60Hz (16ms interval)
+    3. FPS is measured using requestAnimationFrame + performance.now()
+    4. After 5 seconds, test reports average FPS, min FPS, and verdict
+    5. PASS criteria: average FPS >= 30
+
+  Note: This spike uses a minimal canvas chart implementation to validate
+  the pushData() pattern. In production, LitUI's BaseChartElement handles
+  RAF coalescing and Float32Array conversion internally. The key pattern
+  validated here is:
+    - High-frequency data input (60Hz) does NOT cause frame drops
+    - Chart rendering coalesces updates via requestAnimationFrame
+    - pushData() appends data without replacing the full dataset
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chart Live Update Spike - LitUI</title>
+  <style>
+    body {
+      font-family: monospace;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+    h1 { color: #e94560; }
+    canvas {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: #0f0f23;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .metric {
+      background: #16213e;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .metric-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #e94560;
+    }
+    .metric-label {
+      font-size: 11px;
+      color: #888;
+      margin-top: 5px;
+    }
+    button {
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover { background: #c73852; }
+    button:disabled { background: #555; cursor: not-allowed; }
+    .verdict {
+      font-size: 32px;
+      text-align: center;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .verdict.pass { background: #1b5e20; color: #4caf50; }
+    .verdict.fail { background: #b71c1c; color: #ef9a9a; }
+    .verdict.pending { background: #333; color: #999; }
+    .log {
+      background: #0f0f23;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chart Live Update Spike</h1>
+  <p>Tests LitUI pushData() pattern with high-frequency data input and RAF coalescing.</p>
+
+  <div id="verdict" class="verdict pending">PENDING - Click "Start Test"</div>
+
+  <canvas id="chart" width="860" height="300"></canvas>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-value" id="fps">--</div>
+      <div class="metric-label">Current FPS</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" id="avgFps">--</div>
+      <div class="metric-label">Average FPS</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" id="minFps">--</div>
+      <div class="metric-label">Min FPS</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value" id="dataPoints">0</div>
+      <div class="metric-label">Data Points</div>
+    </div>
+  </div>
+
+  <div>
+    <button id="btnStart" onclick="startTest()">Start Test (5 seconds)</button>
+    <button id="btnReset" onclick="location.reload()">Reset</button>
+  </div>
+
+  <h3>Event Log</h3>
+  <div id="log" class="log"></div>
+
+  <script>
+    // Minimal chart implementation demonstrating pushData() pattern
+    // In production, LitUI BaseChartElement provides this with
+    // RAF coalescing and Float32Array conversion.
+
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+
+    // High-DPI support
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    const MAX_POINTS = 500;
+    const TEST_DURATION_MS = 5000;
+    const DATA_INPUT_INTERVAL_MS = 16; // ~60Hz input rate
+
+    let data = new Float32Array(MAX_POINTS);
+    let dataLength = 0;
+    let renderPending = false;
+    let testRunning = false;
+    let dataInterval = null;
+
+    // FPS tracking
+    let frameTimestamps = [];
+    let fpsValues = [];
+    let lastFrameTime = 0;
+    let totalFrames = 0;
+
+    function log(msg, type = 'info') {
+      const logEl = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.style.color = type === 'error' ? '#f44336' : type === 'success' ? '#4caf50' : '#2196f3';
+      entry.textContent = `[${new Date().toISOString().split('T')[1]}] ${msg}`;
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // pushData() pattern: append data, schedule render via RAF
+    // This is the pattern LitUI uses internally
+    function pushData(value) {
+      if (dataLength >= MAX_POINTS) {
+        // Shift left and append (ring buffer pattern)
+        data.copyWithin(0, 1);
+        data[MAX_POINTS - 1] = value;
+      } else {
+        data[dataLength] = value;
+        dataLength++;
+      }
+      document.getElementById('dataPoints').textContent = dataLength;
+
+      // RAF coalescing: only schedule one render per frame
+      if (!renderPending) {
+        renderPending = true;
+        requestAnimationFrame(render);
+      }
+    }
+
+    // Render the chart using canvas
+    function render(timestamp) {
+      renderPending = false;
+      totalFrames++;
+
+      // FPS calculation
+      if (lastFrameTime > 0) {
+        const delta = timestamp - lastFrameTime;
+        if (delta > 0) {
+          const fps = 1000 / delta;
+          frameTimestamps.push(timestamp);
+          fpsValues.push(fps);
+
+          document.getElementById('fps').textContent = Math.round(fps);
+
+          // Calculate running average
+          const recentFps = fpsValues.slice(-30);
+          const avgFps = recentFps.reduce((a, b) => a + b, 0) / recentFps.length;
+          document.getElementById('avgFps').textContent = Math.round(avgFps);
+
+          // Min FPS (over last 30 samples)
+          const minFps = Math.min(...recentFps);
+          document.getElementById('minFps').textContent = Math.round(minFps);
+        }
+      }
+      lastFrameTime = timestamp;
+
+      // Draw chart
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const y = (h / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      if (dataLength < 2) return;
+
+      // Line
+      ctx.strokeStyle = '#e94560';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+
+      const step = w / (Math.min(dataLength, MAX_POINTS) - 1);
+      const startIdx = Math.max(0, dataLength - MAX_POINTS);
+
+      for (let i = 0; i < Math.min(dataLength, MAX_POINTS); i++) {
+        const x = i * step;
+        const val = data[startIdx + i];
+        const y = h - (val / 100) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    function startTest() {
+      document.getElementById('btnStart').disabled = true;
+      const verdictEl = document.getElementById('verdict');
+      verdictEl.textContent = 'TESTING...';
+      verdictEl.className = 'verdict pending';
+
+      log('Starting chart live update test');
+      log(`Input rate: ${Math.round(1000 / DATA_INPUT_INTERVAL_MS)}Hz`);
+      log(`Duration: ${TEST_DURATION_MS / 1000}s`);
+      log(`Max points: ${MAX_POINTS}`);
+
+      testRunning = true;
+
+      // Push data at ~60Hz
+      dataInterval = setInterval(() => {
+        if (testRunning) {
+          // Generate synthetic metric data (simulating real-time values)
+          const value = 50 + Math.sin(Date.now() / 500) * 30 + (Math.random() - 0.5) * 20;
+          pushData(Math.max(0, Math.min(100, value)));
+        }
+      }, DATA_INPUT_INTERVAL_MS);
+
+      // End test after duration
+      setTimeout(() => {
+        testRunning = false;
+        clearInterval(dataInterval);
+        evaluateResults();
+      }, TEST_DURATION_MS);
+    }
+
+    function evaluateResults() {
+      const avgFps = fpsValues.length > 0
+        ? fpsValues.reduce((a, b) => a + b, 0) / fpsValues.length
+        : 0;
+      const minFps = fpsValues.length > 0 ? Math.min(...fpsValues) : 0;
+
+      log(`Test complete. Total frames: ${totalFrames}`);
+      log(`Average FPS: ${avgFps.toFixed(1)}`);
+      log(`Min FPS: ${minFps.toFixed(1)}`);
+      log(`Data points pushed: ${dataLength}`);
+
+      const verdictEl = document.getElementById('verdict');
+      if (avgFps >= 30) {
+        verdictEl.textContent = `PASS - ${avgFps.toFixed(1)} avg FPS (>= 30)`;
+        verdictEl.className = 'verdict pass';
+        log('PASS: Average FPS meets threshold', 'success');
+      } else {
+        verdictEl.textContent = `FAIL - ${avgFps.toFixed(1)} avg FPS (< 30)`;
+        verdictEl.className = 'verdict fail';
+        log('FAIL: Average FPS below threshold', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
