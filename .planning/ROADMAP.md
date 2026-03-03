@@ -34,7 +34,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can create projects scoped to their organization and generate/revoke API keys and DSNs per project
   4. The full stack runs with `docker compose up` using three services (app, TimescaleDB, Valkey) with health checks and dependency ordering; all config is environment-variable driven
   5. Mesh WebSocket actor supervision, PG transaction pooling with SET LOCAL, Streem-2 fromWebSocket() reconnection, and LitUI chart live-update performance are each demonstrated in a passing spike test
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 01-01-PLAN.md -- Docker Compose stack + project scaffold + DB migrations + tenant isolation
+- [ ] 01-02-PLAN.md -- Toolchain spikes (WS actor supervision, PG SET LOCAL, WS reconnect, chart live-update)
+- [ ] 01-03-PLAN.md -- Auth system (register, login, logout, sessions, middleware)
+- [ ] 01-04-PLAN.md -- Organization management + schema provisioning
+- [ ] 01-05-PLAN.md -- Password reset, Google OAuth, invites, projects, API keys
+- [ ] 01-06-PLAN.md -- Frontend UI (auth pages, org setup wizard, org settings)
 
 ### Phase 2: Error Ingestion Core
 **Goal**: The system accepts error events via both OTLP and Sentry envelope formats, fingerprints them into issues, and persists them with environment tagging and rate limiting
@@ -128,7 +136,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Toolchain Spike | 0/TBD | Not started | - |
+| 1. Foundation + Toolchain Spike | 0/6 | Planned | - |
 | 2. Error Ingestion Core | 0/TBD | Not started | - |
 | 3. Issue Management + REST API | 0/TBD | Not started | - |
 | 4. Metrics Ingestion + Dashboards | 0/TBD | Not started | - |
