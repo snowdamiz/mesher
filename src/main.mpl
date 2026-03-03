@@ -1,14 +1,15 @@
 # Mesher application entry point
 # Starts the HTTP server with a connection pool, health endpoint,
-# and authentication routes (login/logout).
+# authentication routes, org management, and feature endpoints.
 #
-# KNOWN LIMITATION: Mesh has no cross-file function visibility.
-# Import statements, module declarations, and implicit file merging
-# all fail to resolve functions across files. All route handlers
-# must be defined in the same file as the router that references them.
-# See src/auth/session.mpl for the full auth module (compiles standalone).
+# Cross-module imports use `import X.Y` with `pub fn` for inter-file access.
+# (Established pattern from Plan 04: import Org.Handlers / import Org.Schema)
 #
 # Functions MUST be defined before use (no forward references).
+
+import Auth.Reset
+import Auth.Oauth
+import Org.Handlers
 
 # Cookie parsing helpers.
 fn extract_session_value(raw_val :: String) -> String do
@@ -105,11 +106,34 @@ fn main() do
     |> HTTP.on_get("/health", fn(request) do
       HTTP.response(200, json { status: "ok" })
     end)
+    # Public auth routes (no session required)
     |> HTTP.on_post("/api/login", fn(request) do
       handle_login(pool, request)
     end)
     |> HTTP.on_post("/api/logout", fn(request) do
       handle_logout(pool, request)
+    end)
+    |> HTTP.on_post("/api/auth/reset-password", fn(request) do
+      Reset.request_reset_handler(pool, request)
+    end)
+    |> HTTP.on_post("/api/auth/reset-password/confirm", fn(request) do
+      Reset.confirm_reset_handler(pool, request)
+    end)
+    |> HTTP.on_get("/api/auth/oauth/google", fn(request) do
+      Oauth.google_oauth_start(pool, request)
+    end)
+    |> HTTP.on_get("/api/auth/oauth/google/callback", fn(request) do
+      Oauth.google_oauth_callback(pool, request)
+    end)
+    # Authenticated routes (org management)
+    |> HTTP.on_post("/api/orgs", fn(request) do
+      Handlers.handle_create_org(pool, request)
+    end)
+    |> HTTP.on_get("/api/orgs", fn(request) do
+      Handlers.handle_list_orgs(pool, request)
+    end)
+    |> HTTP.on_get("/api/orgs/:org_id", fn(request) do
+      Handlers.handle_get_org(pool, request)
     end)
 
   HTTP.serve(router, port)
