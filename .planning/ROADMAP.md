@@ -13,6 +13,8 @@ Mesher is built in nine phases that follow a strict dependency order: foundation
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation + Toolchain Spike** - Auth, orgs, Docker Compose skeleton, and beta toolchain validation
+- [ ] **Phase 1.1: Update project to use Mesh built-in ORM for migrations and queries** (INSERTED)
+- [ ] **Phase 1.2: Reorganize repo with server and client directories** (INSERTED)
 - [ ] **Phase 2: Error Ingestion Core** - OTLP/HTTP + Sentry envelope ingestion, fingerprinting, event storage
 - [ ] **Phase 3: Issue Management + REST API** - Issue list, lifecycle, filtering, timeline, QueryActor REST API
 - [ ] **Phase 4: Metrics Ingestion + Dashboards** - Fixed-schema metrics, TimescaleDB hypertables, line/area charts
@@ -43,6 +45,29 @@ Plans:
 - [x] 01-04-PLAN.md -- Organization management + schema provisioning
 - [ ] 01-05-PLAN.md -- Password reset, Google OAuth, invites, projects, API keys
 - [ ] 01-06-PLAN.md -- Frontend UI (auth pages, org setup wizard, org settings)
+
+### Phase 01.2: Reorganize repo with server and client directories (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 1
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 01.2 to break down)
+
+### Phase 01.1: Update project to use Mesh built-in ORM for migrations and queries (INSERTED)
+
+**Goal:** Replace all hand-written raw SQL (migrations, queries, transactions) with Mesh's built-in ORM across the entire codebase, eliminate schema-per-org isolation in favor of org_id FK filtering, and flatten deeply nested error handling
+**Requirements**: N/A (inserted refactoring phase — no new features, scope defined in CONTEXT.md)
+**Depends on:** Phase 1
+**Plans:** 4 plans
+
+Plans:
+- [ ] 01.1-01-PLAN.md -- Model struct definitions (types/) and fresh ORM migration
+- [ ] 01.1-02-PLAN.md -- Centralized storage/queries.mpl and remove schema-per-org
+- [ ] 01.1-03-PLAN.md -- Auth module conversion (session, reset, oauth, cookies)
+- [ ] 01.1-04-PLAN.md -- Org/project handler conversion and main.mpl cleanup
 
 ### Phase 2: Error Ingestion Core
 **Goal**: The system accepts error events via both OTLP and Sentry envelope formats, fingerprints them into issues, and persists them with environment tagging and rate limiting
