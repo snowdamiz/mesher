@@ -50,7 +50,7 @@ Progress: [███████░░░] 8%
 |------|----------|-------|-------|
 | Phase 01 P01 | 2min | 3 tasks | 12 files |
 | Phase 01 P02 | 45min | 2 tasks | 8 files |
-| Phase 01 P03 | 12min | 2 tasks | 2 files |
+| Phase 01 P03 | 35min | 3 tasks | 3 files |
 | Phase 01 P04 | 25min | 1 tasks | 3 files |
 
 *Updated after each plan completion*
@@ -74,6 +74,10 @@ Recent decisions affecting current work:
 - [Phase 01]: Ws.serve must be wrapped in separate function from spawn to avoid Pid type inference bleed
 - [Phase 01]: on_message and on_close callbacks must return () explicitly (not Int from Ws.send)
 - [Phase 01]: Case arm expressions must be on same line as -> (no multi-line bodies)
+- [01-03]: PG-delegated crypto: gen_random_uuid() for session IDs, pgcrypto crypt() for password verification (Mesh has no Crypto stdlib)
+- [01-03]: Mesh has no cross-file function visibility (import/module both fail) -- all route handlers must live in same file as router
+- [01-03]: Mesh HTTP stdlib has no response header API (no set_header/header/with_header) -- session ID returned in JSON body
+- [01-03]: Avoid ? operator in handler functions to prevent Result type pollution; use explicit case matching
 - [01-04]: Cross-module imports via `import Org.Handlers` / `import Org.Schema` with `pub fn` for inter-file access
 - [01-04]: Bottom-up function ordering required in Mesh (no forward references); leaf helpers first, public entry points last
 - [01-04]: Cannot use ? operator in Response-returning functions; use explicit case on Result types

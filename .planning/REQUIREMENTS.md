@@ -10,9 +10,9 @@
 
 ### AUTH — Authentication & User Accounts
 
-- [ ] **AUTH-01**: Self-hosted user can register an account with email and password
-- [ ] **AUTH-02**: User can log in and maintain session across browser refreshes
-- [ ] **AUTH-03**: User can log out from any page
+- [x] **AUTH-01**: Self-hosted user can register an account with email and password
+- [x] **AUTH-02**: User can log in and maintain session across browser refreshes
+- [x] **AUTH-03**: User can log out from any page
 - [ ] **AUTH-04**: Self-hosted user can reset their password via email link
 - [ ] **AUTH-05**: SaaS user can sign in with Google OAuth (SaaS tier only)
 
@@ -148,9 +148,9 @@ These are **explicitly excluded** from Mesher. Reasons are provided to prevent r
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
 | AUTH-04 | Phase 1 | Pending |
 | AUTH-05 | Phase 1 | Pending |
 | ORG-01 | Phase 1 | Pending |

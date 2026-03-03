@@ -37,10 +37,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 6 plans
 
 Plans:
-- [ ] 01-01-PLAN.md -- Docker Compose stack + project scaffold + DB migrations + tenant isolation
-- [ ] 01-02-PLAN.md -- Toolchain spikes (WS actor supervision, PG SET LOCAL, WS reconnect, chart live-update)
-- [ ] 01-03-PLAN.md -- Auth system (register, login, logout, sessions, middleware)
-- [ ] 01-04-PLAN.md -- Organization management + schema provisioning
+- [x] 01-01-PLAN.md -- Docker Compose stack + project scaffold + DB migrations + tenant isolation
+- [x] 01-02-PLAN.md -- Toolchain spikes (WS actor supervision, PG SET LOCAL, WS reconnect, chart live-update)
+- [x] 01-03-PLAN.md -- Auth system (register, login, logout, sessions, middleware)
+- [x] 01-04-PLAN.md -- Organization management + schema provisioning
 - [ ] 01-05-PLAN.md -- Password reset, Google OAuth, invites, projects, API keys
 - [ ] 01-06-PLAN.md -- Frontend UI (auth pages, org setup wizard, org settings)
 
