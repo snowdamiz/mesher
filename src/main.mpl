@@ -10,6 +10,8 @@
 import Auth.Reset
 import Auth.Oauth
 import Org.Handlers
+import Org.Invites
+import Project.Projects
 
 # Cookie parsing helpers.
 fn extract_session_value(raw_val :: String) -> String do
@@ -125,6 +127,10 @@ fn main() do
     |> HTTP.on_get("/api/auth/oauth/google/callback", fn(request) do
       Oauth.google_oauth_callback(pool, request)
     end)
+    # Semi-public route (invite accept - handles auth check internally)
+    |> HTTP.on_post("/api/invites/:token/accept", fn(request) do
+      Invites.accept_invite_handler(pool, request)
+    end)
     # Authenticated routes (org management)
     |> HTTP.on_post("/api/orgs", fn(request) do
       Handlers.handle_create_org(pool, request)
@@ -134,6 +140,33 @@ fn main() do
     end)
     |> HTTP.on_get("/api/orgs/:org_id", fn(request) do
       Handlers.handle_get_org(pool, request)
+    end)
+    # Invite management (authenticated, org-scoped)
+    |> HTTP.on_post("/api/orgs/:org_id/invites", fn(request) do
+      Invites.create_invite_handler(pool, request)
+    end)
+    |> HTTP.on_get("/api/orgs/:org_id/invites", fn(request) do
+      Invites.list_invites_handler(pool, request)
+    end)
+    |> HTTP.on_delete("/api/orgs/:org_id/invites/:invite_id", fn(request) do
+      Invites.revoke_invite_handler(pool, request)
+    end)
+    # Project management (authenticated, org-scoped)
+    |> HTTP.on_post("/api/orgs/:org_id/projects", fn(request) do
+      Projects.create_project_handler(pool, request)
+    end)
+    |> HTTP.on_get("/api/orgs/:org_id/projects", fn(request) do
+      Projects.list_projects_handler(pool, request)
+    end)
+    # API key management (authenticated, org-scoped)
+    |> HTTP.on_post("/api/orgs/:org_id/projects/:project_id/api-keys", fn(request) do
+      Projects.create_api_key_handler(pool, request)
+    end)
+    |> HTTP.on_get("/api/orgs/:org_id/projects/:project_id/api-keys", fn(request) do
+      Projects.list_api_keys_handler(pool, request)
+    end)
+    |> HTTP.on_post("/api/orgs/:org_id/api-keys/:key_id/revoke", fn(request) do
+      Projects.revoke_api_key_handler(pool, request)
     end)
 
   HTTP.serve(router, port)

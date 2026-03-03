@@ -26,7 +26,7 @@ end
 #   with_org_schema(pool, org_id, fn(conn) do
 #     Pool.execute(conn, "SELECT * FROM projects", [])
 #   end)
-fn with_org_schema(pool, org_id :: String, query_fn) do
+pub fn with_org_schema(pool, org_id :: String, query_fn) do
   let conn = Pool.checkout(pool)?
   let _ = Pg.begin(conn)?
   let _ = Pg.execute(conn, "SET LOCAL search_path TO org_#{org_id}, public", [])?
