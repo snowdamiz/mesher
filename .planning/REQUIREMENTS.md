@@ -146,22 +146,69 @@ These are **explicitly excluded** from Mesher. Reasons are provided to prevent r
 
 ## Traceability
 
-| Requirement | Phase |
-|-------------|-------|
-| AUTH-01 to AUTH-05 | — |
-| ORG-01 to ORG-06 | — |
-| ERR-01 to ERR-11 | — |
-| INGEST-01 to INGEST-07 | — |
-| METRICS-01 to METRICS-05 | — |
-| DASH-01 to DASH-05 | — |
-| ALERT-01 to ALERT-05 | — |
-| NOTIF-01 to NOTIF-04 | — |
-| SDK-01 to SDK-02 | — |
-| DEPLOY-01 to DEPLOY-04 | — |
-| AI-01 to AI-04 | — |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUTH-01 | Phase 1 | Pending |
+| AUTH-02 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Pending |
+| AUTH-05 | Phase 1 | Pending |
+| ORG-01 | Phase 1 | Pending |
+| ORG-02 | Phase 1 | Pending |
+| ORG-03 | Phase 1 | Pending |
+| ORG-04 | Phase 1 | Pending |
+| ORG-05 | Phase 1 | Pending |
+| ORG-06 | Phase 1 | Pending |
+| DEPLOY-01 | Phase 1 | Pending |
+| DEPLOY-02 | Phase 1 | Pending |
+| DEPLOY-03 | Phase 1 | Pending |
+| INGEST-01 | Phase 2 | Pending |
+| INGEST-02 | Phase 2 | Pending |
+| INGEST-03 | Phase 2 | Pending |
+| INGEST-04 | Phase 2 | Pending |
+| INGEST-05 | Phase 2 | Pending |
+| INGEST-06 | Phase 2 | Pending |
+| INGEST-07 | Phase 2 | Pending |
+| ERR-01 | Phase 2 | Pending |
+| ERR-02 | Phase 2 | Pending |
+| ERR-10 | Phase 2 | Pending |
+| ERR-03 | Phase 3 | Pending |
+| ERR-04 | Phase 3 | Pending |
+| ERR-05 | Phase 3 | Pending |
+| ERR-06 | Phase 3 | Pending |
+| ERR-07 | Phase 3 | Pending |
+| ERR-08 | Phase 3 | Pending |
+| ERR-09 | Phase 3 | Pending |
+| METRICS-01 | Phase 4 | Pending |
+| METRICS-02 | Phase 4 | Pending |
+| METRICS-03 | Phase 4 | Pending |
+| METRICS-04 | Phase 4 | Pending |
+| METRICS-05 | Phase 4 | Pending |
+| DASH-01 | Phase 4 | Pending |
+| DASH-02 | Phase 4 | Pending |
+| DASH-03 | Phase 4 | Pending |
+| DASH-05 | Phase 4 | Pending |
+| ERR-11 | Phase 5 | Pending |
+| DASH-04 | Phase 5 | Pending |
+| ALERT-01 | Phase 6 | Pending |
+| ALERT-02 | Phase 6 | Pending |
+| ALERT-03 | Phase 6 | Pending |
+| ALERT-04 | Phase 6 | Pending |
+| ALERT-05 | Phase 6 | Pending |
+| NOTIF-01 | Phase 6 | Pending |
+| NOTIF-02 | Phase 6 | Pending |
+| NOTIF-03 | Phase 6 | Pending |
+| NOTIF-04 | Phase 6 | Pending |
+| SDK-01 | Phase 8 | Pending |
+| SDK-02 | Phase 8 | Pending |
+| DEPLOY-04 | Phase 8 | Pending |
+| AI-01 | Phase 9 | Pending |
+| AI-02 | Phase 9 | Pending |
+| AI-03 | Phase 9 | Pending |
+| AI-04 | Phase 9 | Pending |
 
-*Traceability filled by gsd-roadmapper*
+*Traceability filled by gsd-roadmapper — 2026-03-03*
 
 ---
 
-*Last updated: 2026-03-03 after requirements definition*
+*Last updated: 2026-03-03 after roadmap creation*
