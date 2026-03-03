@@ -1,18 +1,11 @@
-# Auth: PG-backed session store, auth middleware, and tier gate
+# Auth: Session store, auth middleware, and tier gate
 # (AUTH-01, AUTH-02, AUTH-03)
 #
 # Sessions are stored in the public.sessions table with a 24-hour expiry.
-# UUID generation uses Mesh's native Crypto.uuid4().
-# bcrypt password verification is delegated to PostgreSQL pgcrypto crypt()
-# because bcrypt is not available in Mesh stdlib (sha256/sha512/hmac are).
-#
-# KNOWN LIMITATION: Mesh HTTP stdlib has no response header API.
-# HTTP.set_header, HTTP.header, HTTP.with_header, HTTP.add_header,
-# Response.set_header do not exist. HTTP.response only takes (status, body).
-# Set-Cookie headers cannot be set from user code until Mesh adds this API.
-# Session cookie delivery will require a Mesh runtime enhancement.
-#
-# Functions MUST be defined before use (no forward references in Mesh).
+# All data access goes through centralized storage/queries.mpl ORM functions.
+# No inline SQL in this module.
+
+from Src.Storage.Queries import authenticate_user, create_session, delete_session, cleanup_expired_sessions, validate_session
 
 # Extract session value from raw cookie substring.
 fn extract_session_value(raw_val :: String) -> String do
@@ -46,48 +39,48 @@ fn respond_saas_only() -> Response do
   HTTP.response(403, json { error: "SaaS only" })
 end
 
-# Remove all expired sessions from the database.
-fn cleanup_expired(pool) do
-  Pool.execute(pool, "DELETE FROM sessions WHERE expires_at < NOW()", [])
-end
-
-# Destroy a single session by ID.
-fn destroy_session(pool, session_id :: String) do
-  Pool.execute(pool, "DELETE FROM sessions WHERE id = $1", [session_id])
-end
-
-# Destroy all sessions for a user.
-fn destroy_user_sessions(pool, user_id :: String) do
-  Pool.execute(pool, "DELETE FROM sessions WHERE user_id = $1", [user_id])
-end
-
-# Validate session rows from query.
-fn handle_validated_rows(rows, request, next) -> Response do
-  let count = List.length(rows)
-  if count > 0 do
-    next(request)
-  else
-    respond_unauthorized()
+# POST /api/login
+pub fn handle_login(pool, request) -> Response do
+  let raw_body = Request.body(request)
+  let parse_result = Json.parse(raw_body)
+  case parse_result do
+    Err(_) -> HTTP.response(400, json { error: "invalid JSON" })
+    Ok(body) -> do
+      let email = Json.get(body, "email")
+      let password = Json.get(body, "password")
+      let auth_result = authenticate_user(pool, email, password)
+      case auth_result do
+        Err(_) -> HTTP.response(401, json { error: "invalid email or password" })
+        Ok(user_row) -> do
+          let user_id = Map.get(user_row, "id")
+          let user_email = Map.get(user_row, "email")
+          let _ = cleanup_expired_sessions(pool)
+          let session_result = create_session(pool, user_id)
+          case session_result do
+            Err(_) -> HTTP.response(500, json { error: "session creation failed" })
+            Ok(token) -> HTTP.response_with_headers(200, json { email: user_email }, %{"Set-Cookie" => "mesher_session=" <> token <> "; HttpOnly; Path=/; SameSite=Lax; Max-Age=86400"})
+          end
+        end
+      end
+    end
   end
 end
 
-# Validate session and continue request chain.
-fn handle_validate_ok(pool, sid :: String, request, next) -> Response do
-  let query_result = Pool.query(pool,
-    "SELECT s.user_id FROM sessions s WHERE s.id = $1 AND s.expires_at > NOW()",
-    [sid])
-  case query_result do
-    Ok(rows) -> handle_validated_rows(rows, request, next)
-    Err(_e) -> respond_unauthorized()
-  end
-end
-
-fn check_session(pool, request, next, cookie_str) -> Response do
-  let sid = parse_session_cookie(cookie_str)
-  if sid == "" do
-    respond_unauthorized()
-  else
-    handle_validate_ok(pool, sid, request, next)
+# POST /api/logout
+pub fn handle_logout(pool, request) -> Response do
+  let cookie = Request.header(request, "cookie")
+  let clear_cookie = %{"Set-Cookie" => "mesher_session=; HttpOnly; Path=/; Max-Age=0"}
+  case cookie do
+    None -> HTTP.response_with_headers(200, json { status: "logged out" }, clear_cookie)
+    Some(cookie_str) -> do
+      let token = parse_session_cookie(cookie_str)
+      if token != "" do
+        let _ = delete_session(pool, token)
+        HTTP.response_with_headers(200, json { status: "logged out" }, clear_cookie)
+      else
+        HTTP.response_with_headers(200, json { status: "logged out" }, clear_cookie)
+      end
+    end
   end
 end
 
@@ -96,8 +89,19 @@ fn auth_middleware(pool) do
   fn(request, next) do
     let cookie = Request.header(request, "cookie")
     case cookie do
-      Some(cookie_str) -> check_session(pool, request, next, cookie_str)
       None -> respond_unauthorized()
+      Some(cookie_str) -> do
+        let token = parse_session_cookie(cookie_str)
+        if token == "" do
+          respond_unauthorized()
+        else
+          let session_result = validate_session(pool, token)
+          case session_result do
+            Err(_) -> respond_unauthorized()
+            Ok(_) -> next(request)
+          end
+        end
+      end
     end
   end
 end
@@ -112,74 +116,5 @@ fn tier_gate(request, next) -> Response do
     respond_saas_only()
   else
     next(request)
-  end
-end
-
-# Handle verified password rows.
-fn handle_verified_rows(pool, rows) -> Response do
-  let count = List.length(rows)
-  if count > 0 do
-    let user_row = List.head(rows)
-    let email = Map.get(user_row, "email")
-    let user_id = Map.get(user_row, "id")
-    let _ = cleanup_expired(pool)
-    let session_id = Crypto.uuid4()
-    let insert_result = Pool.execute(pool,
-      "INSERT INTO sessions (id, user_id, expires_at) VALUES ($1, $2, NOW() + INTERVAL '24 hours')",
-      [session_id, user_id])
-    case insert_result do
-      Ok(_) -> HTTP.response(200, json { email: email, session_id: session_id })
-      Err(_e) -> HTTP.response(500, json { error: "session creation failed" })
-    end
-  else
-    HTTP.response(401, json { error: "invalid email or password" })
-  end
-end
-
-# Verify password and handle result.
-fn verify_and_respond(pool, email, password) -> Response do
-  let verify_result = Pool.query(pool,
-    "SELECT id, email FROM users WHERE email = $1 AND password_hash = crypt($2, password_hash)",
-    [email, password])
-  case verify_result do
-    Ok(rows) -> handle_verified_rows(pool, rows)
-    Err(_e) -> HTTP.response(500, json { error: "database error" })
-  end
-end
-
-# Handle parsed login body.
-fn do_login(pool, body) -> Response do
-  let email = Json.get(body, "email")
-  let password = Json.get(body, "password")
-  verify_and_respond(pool, email, password)
-end
-
-# POST /api/login handler.
-pub fn handle_login(pool, request) -> Response do
-  let raw_body = Request.body(request)
-  let parse_result = Json.parse(raw_body)
-  case parse_result do
-    Ok(body) -> do_login(pool, body)
-    Err(_e) -> HTTP.response(400, json { error: "invalid JSON" })
-  end
-end
-
-# Handle logout with valid cookie string.
-fn do_logout(pool, cookie_str) -> Response do
-  let sid = parse_session_cookie(cookie_str)
-  if sid != "" do
-    let _ = destroy_session(pool, sid)
-    HTTP.response(200, json { status: "logged out" })
-  else
-    HTTP.response(200, json { status: "logged out" })
-  end
-end
-
-# POST /api/logout handler.
-pub fn handle_logout(pool, request) -> Response do
-  let cookie = Request.header(request, "cookie")
-  case cookie do
-    Some(cookie_str) -> do_logout(pool, cookie_str)
-    None -> HTTP.response(200, json { status: "logged out" })
   end
 end
