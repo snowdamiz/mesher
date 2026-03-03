@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-03T19:23:12Z"
+last_updated: "2026-03-03T19:29:09Z"
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 10
 ---
 
 # Project State
@@ -18,22 +18,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 1.1 — Update project to use Mesh built-in ORM
+**Current focus:** Phase 1.1 COMPLETE — Next: Phase 01.2 (repo reorganization)
 
 ## Current Position
 
-Phase: 1.1 of 9 (Update project to use Mesh built-in ORM)
-Plan: 2 of 4 in current phase
-Status: Executing
-Last activity: 2026-03-03 — Completed 01.1-02-PLAN.md (centralized ORM queries + remove schema-per-org)
+Phase: 1.1 of 9 (Update project to use Mesh built-in ORM) -- COMPLETE
+Plan: 4 of 4 in current phase -- PHASE COMPLETE
+Status: Phase 01.1 Complete
+Last activity: 2026-03-03 — Completed 01.1-04-PLAN.md (handler ORM conversion -- final plan in phase)
 
-Progress: [████████████░░░░░░░░] 15%
+Progress: [████████████████████] 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 14min
+- Total plans completed: 10
+- Average duration: 12min
 - Total execution time: 1.7 hours
 
 **By Phase:**
@@ -41,10 +41,10 @@ Progress: [████████████░░░░░░░░] 15%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 - Foundation | 6 | 104min | 17min |
-| 1.1 - ORM Migration | 2 | 4min | 2min |
+| 1.1 - ORM Migration | 4 | 8min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (25min), 01-05 (13min), 01-06 (7min), 01.1-01 (2min), 01.1-02 (2min)
+- Last 5 plans: 01-06 (7min), 01.1-01 (2min), 01.1-02 (2min), 01.1-03 (2min), 01.1-04 (2min)
 - Trend: accelerating
 
 | Plan | Duration | Tasks | Files |
@@ -57,6 +57,8 @@ Progress: [████████████░░░░░░░░] 15%
 | Phase 01 P06 | 7min | 2 tasks | 35 files |
 | Phase 01.1 P01 | 2min | 2 tasks | 5 files |
 | Phase 01.1 P02 | 2min | 2 tasks | 3 files |
+| Phase 01.1 P03 | 2min | 2 tasks | 4 files |
+| Phase 01.1 P04 | 2min | 2 tasks | 3 files |
 
 *Updated after each plan completion*
 
@@ -105,10 +107,16 @@ Recent decisions affecting current work:
 - [01.1-02]: Return Map<String, String> from query functions (not struct types) for flexibility -- handlers construct structs if needed
 - [01.1-02]: OAuth state stored as session rows with 'oauth_state_' prefix and placeholder UUID user_id
 - [01.1-02]: tenant.mpl and schema.mpl kept as comment stubs (not deleted) to avoid import errors until Plans 03/04 update callers
+- [01.1-03]: Explicit case matching on Result in all handler functions (handlers return Response, not Result -- cannot use ? operator)
+- [01.1-03]: Fire-and-forget pattern (let _ =) for non-critical cleanup operations (expired session cleanup, token invalidation, oauth state deletion)
+- [01.1-03]: OAuth google_oauth_start now handles store_oauth_state error with 500 response (was fire-and-forget inline SQL)
+- [01.1-04]: main.mpl needs no changes -- all handler function signatures (pool, request) -> Response preserved, all routes unchanged
+- [01.1-04]: Org creation returns slug instead of schema_name in 201 response -- schema-per-org fully eliminated
+- [01.1-04]: Slug generation uses inline String.replace(String.lower(name), " ", "-") rather than a library
 
 ### Roadmap Evolution
 
-- Phase 01.1 inserted after Phase 1: Update project to use Mesh built-in ORM for migrations and queries (URGENT)
+- Phase 01.1 inserted after Phase 1: Update project to use Mesh built-in ORM for migrations and queries (URGENT) -- COMPLETE
 - Phase 01.2 inserted after Phase 1: Reorganize repo with server and client directories (URGENT)
 
 ### Pending Todos
@@ -126,5 +134,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 01.1-02-PLAN.md (centralized ORM queries + remove schema-per-org)
-Resume file: .planning/phases/01.1-update-project-to-use-mesh-built-in-orm-for-migrations-and-queries/01.1-02-SUMMARY.md
+Stopped at: Completed 01.1-04-PLAN.md (handler ORM conversion -- Phase 01.1 COMPLETE)
+Resume file: .planning/phases/01.1-update-project-to-use-mesh-built-in-orm-for-migrations-and-queries/01.1-04-SUMMARY.md

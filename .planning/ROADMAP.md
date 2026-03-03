@@ -61,13 +61,13 @@ Plans:
 **Goal:** Replace all hand-written raw SQL (migrations, queries, transactions) with Mesh's built-in ORM across the entire codebase, eliminate schema-per-org isolation in favor of org_id FK filtering, and flatten deeply nested error handling
 **Requirements**: N/A (inserted refactoring phase — no new features, scope defined in CONTEXT.md)
 **Depends on:** Phase 1
-**Plans:** 2/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 01.1-01-PLAN.md -- Model struct definitions (types/) and fresh ORM migration
-- [ ] 01.1-02-PLAN.md -- Centralized storage/queries.mpl and remove schema-per-org
-- [ ] 01.1-03-PLAN.md -- Auth module conversion (session, reset, oauth, cookies)
-- [ ] 01.1-04-PLAN.md -- Org/project handler conversion and main.mpl cleanup
+- [x] 01.1-02-PLAN.md -- Centralized storage/queries.mpl and remove schema-per-org
+- [x] 01.1-03-PLAN.md -- Auth module conversion (session, reset, oauth, cookies)
+- [x] 01.1-04-PLAN.md -- Org/project handler conversion and main.mpl cleanup
 
 ### Phase 2: Error Ingestion Core
 **Goal**: The system accepts error events via both OTLP and Sentry envelope formats, fingerprints them into issues, and persists them with environment tagging and rate limiting
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Toolchain Spike | 4/6 | In Progress | - |
-| 1.1. ORM Migration (INSERTED) | 1/4 | In Progress | - |
+| 1.1. ORM Migration (INSERTED) | 4/4 | Complete | 2026-03-03 |
 | 2. Error Ingestion Core | 0/TBD | Not started | - |
 | 3. Issue Management + REST API | 0/TBD | Not started | - |
 | 4. Metrics Ingestion + Dashboards | 0/TBD | Not started | - |
