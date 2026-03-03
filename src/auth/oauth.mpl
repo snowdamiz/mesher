@@ -9,6 +9,7 @@
 # All data access goes through centralized storage/queries.mpl ORM functions.
 # No inline SQL in this module.
 
+from Src.Auth.Guards import require_query, guard_error
 from Src.Storage.Queries import store_oauth_state, validate_oauth_state, delete_oauth_state, upsert_oauth_user, create_session
 
 fn build_google_auth_url(state :: String) -> String do
@@ -58,35 +59,34 @@ pub fn google_oauth_start(pool, request) -> Response do
   end
 end
 
+fn extract_oauth_params(request) -> Map<String, String>!String do
+  let code = require_query(request, "code")?
+  let state = require_query(request, "state")?
+  Ok(%{"code" => code, "state" => state})
+end
+
+fn do_oauth_callback(pool, request) -> Response!String do
+  let params = extract_oauth_params(request)?
+  let code = Map.get(params, "code")
+  let state = Map.get(params, "state")
+  let is_valid = validate_oauth_state(pool, state)?
+  if is_valid do
+    let _ = delete_oauth_state(pool, state)
+    Ok(exchange_code_stub(pool, code))
+  else
+    Err("invalid or expired OAuth state")
+  end
+end
+
 # GET /api/auth/oauth/google/callback
 pub fn google_oauth_callback(pool, request) -> Response do
   let tier = Env.get("MESHER_TIER", "oss")
   if tier != "saas" do
     saas_only_error()
   else
-    let code_opt = Request.query(request, "code")
-    let state_opt = Request.query(request, "state")
-    case code_opt do
-      None -> HTTP.response(400, json { error: "missing code parameter" })
-      Some(code) -> do
-        case state_opt do
-          None -> HTTP.response(400, json { error: "missing state parameter" })
-          Some(state) -> do
-            let valid_result = validate_oauth_state(pool, state)
-            case valid_result do
-              Err(_) -> HTTP.response(400, json { error: "invalid OAuth state" })
-              Ok(is_valid) -> do
-                if is_valid do
-                  let _ = delete_oauth_state(pool, state)
-                  exchange_code_stub(pool, code)
-                else
-                  HTTP.response(400, json { error: "invalid or expired OAuth state" })
-                end
-              end
-            end
-          end
-        end
-      end
+    case do_oauth_callback(pool, request) do
+      Err(e) -> guard_error(e)
+      Ok(r) -> r
     end
   end
 end

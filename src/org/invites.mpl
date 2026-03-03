@@ -1,6 +1,7 @@
 from Src.Mail.Sender import send_email
 from Src.Auth.Cookies import extract_user_id
-from Src.Storage.Queries import check_membership, get_org, create_invite, get_pending_invite, check_pending_invite_by_email, check_existing_member_by_email, accept_invite, add_member, revoke_invite, list_invites
+from Src.Auth.Guards import require_owner, require_member, require_param, parse_json_body, guard_error
+from Src.Storage.Queries import get_org, create_invite, get_pending_invite, check_pending_invite_by_email, check_existing_member_by_email, accept_invite, add_member, revoke_invite, list_invites
 
 # Organization invite handlers
 #
@@ -20,172 +21,91 @@ fn send_invite_email(email :: String, token :: String, org_name :: String) -> Re
   HTTP.response(201, json { email: email, token: token })
 end
 
-# POST /api/orgs/:org_id/invites
-pub fn create_invite_handler(pool, request) -> Response do
-  let user_result = extract_user_id(pool, request)
-  case user_result do
-    Err(_) -> HTTP.response(401, json { error: "unauthorized" })
-    Ok(user_id) -> do
-      let org_id_opt = Request.param(request, "org_id")
-      case org_id_opt do
-        None -> HTTP.response(400, json { error: "missing org_id parameter" })
-        Some(org_id) -> do
-          let raw_body = Request.body(request)
-          let parse_result = Json.parse(raw_body)
-          case parse_result do
-            Err(_) -> HTTP.response(400, json { error: "invalid JSON" })
-            Ok(body_json) -> do
-              let email = Json.get(body_json, "email")
-              let mem_result = check_membership(pool, org_id, user_id)
-              case mem_result do
-                Err(_) -> HTTP.response(403, json { error: "not a member of this organization" })
-                Ok(membership) -> do
-                  let role = Map.get(membership, "role")
-                  if role != "owner" do
-                    HTTP.response(403, json { error: "only owners can create invites" })
-                  else
-                    let org_result = get_org(pool, org_id)
-                    case org_result do
-                      Err(_) -> HTTP.response(404, json { error: "organization not found" })
-                      Ok(org) -> do
-                        let org_name = Map.get(org, "name")
-                        let is_member = check_existing_member_by_email(pool, org_id, email)
-                        case is_member do
-                          Err(_) -> HTTP.response(500, json { error: "failed to check membership" })
-                          Ok(already_member) -> do
-                            if already_member do
-                              HTTP.response(409, json { error: "user is already a member" })
-                            else
-                              let has_pending = check_pending_invite_by_email(pool, org_id, email)
-                              case has_pending do
-                                Err(_) -> HTTP.response(500, json { error: "failed to check pending invites" })
-                                Ok(pending) -> do
-                                  if pending do
-                                    HTTP.response(409, json { error: "invite already pending" })
-                                  else
-                                    let token = Crypto.uuid4()
-                                    let invite_result = create_invite(pool, org_id, email, token, user_id)
-                                    case invite_result do
-                                      Err(_) -> HTTP.response(500, json { error: "failed to create invite" })
-                                      Ok(_) -> send_invite_email(email, token, org_name)
-                                    end
-                                  end
-                                end
-                              end
-                            end
-                          end
-                        end
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
+fn validate_invite_eligibility(pool, org_id :: String, email :: String) -> String!String do
+  let org = get_org(pool, org_id)?
+  let org_name = Map.get(org, "name")
+  let already_member = check_existing_member_by_email(pool, org_id, email)?
+  if already_member do
+    Err("user is already a member")
+  else
+    let pending = check_pending_invite_by_email(pool, org_id, email)?
+    if pending do
+      Err("invite already pending")
+    else
+      Ok(org_name)
     end
   end
+end
+
+# POST /api/orgs/:org_id/invites
+pub fn create_invite_handler(pool, request) -> Response do
+  case do_create_invite(pool, request) do
+    Err(e) -> guard_error(e)
+    Ok(r) -> r
+  end
+end
+
+fn do_create_invite(pool, request) -> Response!String do
+  let mem = require_owner(pool, request)?
+  let org_id = Map.get(mem, "org_id")
+  let user_id = Map.get(mem, "user_id")
+  let body_json = parse_json_body(request)?
+  let email = Json.get(body_json, "email")
+  let org_name = validate_invite_eligibility(pool, org_id, email)?
+  let token = Crypto.uuid4()
+  let _ = create_invite(pool, org_id, email, token, user_id)?
+  Ok(send_invite_email(email, token, org_name))
 end
 
 # POST /api/invites/:token/accept
 pub fn accept_invite_handler(pool, request) -> Response do
-  let token_opt = Request.param(request, "token")
-  case token_opt do
-    None -> HTTP.response(400, json { error: "missing token parameter" })
-    Some(token) -> do
-      let user_result = extract_user_id(pool, request)
-      case user_result do
-        Err(_) -> HTTP.response(401, json { error: "login or register first" })
-        Ok(user_id) -> do
-          let invite_result = get_pending_invite(pool, token)
-          case invite_result do
-            Err(_) -> HTTP.response(400, json { error: "invalid or expired invite" })
-            Ok(invite) -> do
-              let invite_id = Map.get(invite, "id")
-              let org_id = Map.get(invite, "org_id")
-              let mem_result = add_member(pool, org_id, user_id, "member")
-              case mem_result do
-                Err(_) -> HTTP.response(500, json { error: "failed to join organization" })
-                Ok(_) -> do
-                  let _ = accept_invite(pool, invite_id)
-                  HTTP.response(200, json { status: "joined", org_id: org_id })
-                end
-              end
-            end
-          end
-        end
-      end
-    end
+  case do_accept_invite(pool, request) do
+    Err(e) -> guard_error(e)
+    Ok(r) -> r
   end
+end
+
+fn do_accept_invite(pool, request) -> Response!String do
+  let token = require_param(request, "token")?
+  let user_id = extract_user_id(pool, request)?
+  let invite = get_pending_invite(pool, token)?
+  let invite_id = Map.get(invite, "id")
+  let org_id = Map.get(invite, "org_id")
+  let _ = add_member(pool, org_id, user_id, "member")?
+  let _ = accept_invite(pool, invite_id)
+  Ok(HTTP.response(200, json { status: "joined", org_id: org_id }))
 end
 
 # POST /api/orgs/:org_id/invites/:invite_id/revoke
 pub fn revoke_invite_handler(pool, request) -> Response do
-  let user_result = extract_user_id(pool, request)
-  case user_result do
-    Err(_) -> HTTP.response(401, json { error: "unauthorized" })
-    Ok(user_id) -> do
-      let org_id_opt = Request.param(request, "org_id")
-      case org_id_opt do
-        None -> HTTP.response(400, json { error: "missing org_id parameter" })
-        Some(org_id) -> do
-          let invite_id_opt = Request.param(request, "invite_id")
-          case invite_id_opt do
-            None -> HTTP.response(400, json { error: "missing invite_id parameter" })
-            Some(invite_id) -> do
-              let mem_result = check_membership(pool, org_id, user_id)
-              case mem_result do
-                Err(_) -> HTTP.response(403, json { error: "not a member of this organization" })
-                Ok(membership) -> do
-                  let role = Map.get(membership, "role")
-                  if role != "owner" do
-                    HTTP.response(403, json { error: "only owners can revoke invites" })
-                  else
-                    let revoke_result = revoke_invite(pool, invite_id, org_id)
-                    case revoke_result do
-                      Err(_) -> HTTP.response(500, json { error: "failed to revoke invite" })
-                      Ok(_) -> HTTP.response(200, json { status: "invite revoked" })
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
+  case do_revoke_invite(pool, request) do
+    Err(e) -> guard_error(e)
+    Ok(r) -> r
   end
+end
+
+fn do_revoke_invite(pool, request) -> Response!String do
+  let mem = require_owner(pool, request)?
+  let org_id = Map.get(mem, "org_id")
+  let invite_id = require_param(request, "invite_id")?
+  let _ = revoke_invite(pool, invite_id, org_id)?
+  Ok(HTTP.response(200, json { status: "invite revoked" }))
 end
 
 # GET /api/orgs/:org_id/invites
 pub fn list_invites_handler(pool, request) -> Response do
-  let user_result = extract_user_id(pool, request)
-  case user_result do
-    Err(_) -> HTTP.response(401, json { error: "unauthorized" })
-    Ok(user_id) -> do
-      let org_id_opt = Request.param(request, "org_id")
-      case org_id_opt do
-        None -> HTTP.response(400, json { error: "missing org_id parameter" })
-        Some(org_id) -> do
-          let mem_result = check_membership(pool, org_id, user_id)
-          case mem_result do
-            Err(_) -> HTTP.response(403, json { error: "not a member of this organization" })
-            Ok(_) -> do
-              let invite_result = list_invites(pool, org_id)
-              case invite_result do
-                Err(_) -> HTTP.response(500, json { error: "failed to list invites" })
-                Ok(rows) -> do
-                  let invites = List.map(rows, fn(row) do
-                    json { id: Map.get(row, "id"), email: Map.get(row, "email"), expires_at: Map.get(row, "expires_at"), accepted_at: Map.get(row, "accepted_at"), revoked_at: Map.get(row, "revoked_at"), created_at: Map.get(row, "created_at") }
-                  end)
-                  HTTP.response(200, json { invites: invites })
-                end
-              end
-            end
-          end
-        end
-      end
-    end
+  case do_list_invites(pool, request) do
+    Err(e) -> guard_error(e)
+    Ok(r) -> r
   end
+end
+
+fn do_list_invites(pool, request) -> Response!String do
+  let mem = require_member(pool, request)?
+  let org_id = Map.get(mem, "org_id")
+  let rows = list_invites(pool, org_id)?
+  let invites = List.map(rows, fn(row) do
+    json { id: Map.get(row, "id"), email: Map.get(row, "email"), expires_at: Map.get(row, "expires_at"), accepted_at: Map.get(row, "accepted_at"), revoked_at: Map.get(row, "revoked_at"), created_at: Map.get(row, "created_at") }
+  end)
+  Ok(HTTP.response(200, json { invites: invites }))
 end

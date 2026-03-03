@@ -11,3 +11,4 @@ frontend/dist/
 # Environment
 .env
 .env.local
+.gitnexus
