@@ -1,0 +1,14 @@
+{
+  "name": "mesher-root",
+  "private": true,
+  "scripts": {
+    "dev:server": "meshc run server",
+    "build:server": "meshc build server",
+    "test:server": "meshc test server",
+    "migrate:status": "meshc migrate server status",
+    "migrate:up": "meshc migrate server up",
+    "dev:client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "test:client": "npm --prefix client run test"
+  }
+}

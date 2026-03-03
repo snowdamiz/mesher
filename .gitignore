@@ -1,9 +1,9 @@
 # Dependencies
 node_modules/
-frontend/node_modules/
+client/node_modules/
 
 # Build output
-frontend/dist/
+client/dist/
 
 # OS files
 .DS_Store
