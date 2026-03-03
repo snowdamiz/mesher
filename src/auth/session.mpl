@@ -155,7 +155,7 @@ fn do_login(pool, body) -> Response do
 end
 
 # POST /api/login handler.
-fn handle_login(pool, request) -> Response do
+pub fn handle_login(pool, request) -> Response do
   let raw_body = Request.body(request)
   let parse_result = Json.parse(raw_body)
   case parse_result do
@@ -176,7 +176,7 @@ fn do_logout(pool, cookie_str) -> Response do
 end
 
 # POST /api/logout handler.
-fn handle_logout(pool, request) -> Response do
+pub fn handle_logout(pool, request) -> Response do
   let cookie = Request.header(request, "cookie")
   case cookie do
     Some(cookie_str) -> do_logout(pool, cookie_str)

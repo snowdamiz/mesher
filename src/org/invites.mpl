@@ -1,4 +1,4 @@
-import Mail.Sender
+from Mail.Sender import send_email
 
 # Organization invite handlers (ORG-02, ORG-03)
 #
@@ -12,7 +12,7 @@ import Mail.Sender
 # Case arm expressions MUST be on same line as -> (no multi-line bodies).
 
 # ---------------------------------------------------------------------------
-# Cookie parsing helpers (duplicated per Mesh constraint)
+# Cookie parsing helpers (local to this module)
 # ---------------------------------------------------------------------------
 
 fn find_session_at_index_inv(pairs, idx :: Int, len :: Int) -> String!String do
@@ -70,7 +70,7 @@ fn send_invite_email(email :: String, token :: String, org_name :: String) -> Re
   let app_url = Env.get("APP_URL", "http://localhost:8080")
   let invite_url = app_url <> "/invites/" <> token <> "/accept"
   let body_text = "You have been invited to " <> org_name <> " on Mesher. Accept invite: " <> invite_url
-  let _ = Sender.send_email(email, "You've been invited to " <> org_name <> " on Mesher", body_text)
+  let _ = send_email(email, "You've been invited to " <> org_name <> " on Mesher", body_text)
   HTTP.response(201, json { email: email, token: token })
 end
 

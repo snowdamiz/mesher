@@ -1,4 +1,4 @@
-import Mail.Sender
+from Mail.Sender import send_email
 
 # Password reset flow (AUTH-04)
 #
@@ -25,7 +25,7 @@ fn send_reset_email(email :: String, token :: String) -> Response do
   let app_url = Env.get("APP_URL", "http://localhost:8080")
   let reset_url = app_url <> "/reset-password?token=" <> token
   let body_text = "Click here to reset your Mesher password: " <> reset_url
-  let _ = Sender.send_email(email, "Reset your Mesher password", body_text)
+  let _ = send_email(email, "Reset your Mesher password", body_text)
   reset_success_response()
 end
 

@@ -13,10 +13,10 @@
 # Functions MUST be defined before use (no forward references).
 # Case arm expressions MUST be on same line as -> (no multi-line bodies).
 
-import Db.Tenant
+from Db.Tenant import with_org_schema
 
 # ---------------------------------------------------------------------------
-# Cookie parsing helpers (duplicated per Mesh constraint)
+# Cookie parsing helpers (local to this module)
 # ---------------------------------------------------------------------------
 
 fn find_session_at_index_proj(pairs, idx :: Int, len :: Int) -> String!String do
@@ -70,7 +70,8 @@ end
 # Membership check helper (leaf first)
 # ---------------------------------------------------------------------------
 
-fn check_membership_proj_count(mem_rows) -> Int!String do
+fn check_membership_proj(pool, org_id :: String, user_id :: String) -> Int!String do
+  let mem_rows = Pool.query(pool, "SELECT role FROM org_memberships WHERE org_id = $1 AND user_id = $2", [org_id, user_id])?
   let count = List.length(mem_rows)
   if count == 0 do
     Err("not a member")
@@ -79,20 +80,12 @@ fn check_membership_proj_count(mem_rows) -> Int!String do
   end
 end
 
-fn check_membership_proj(pool, org_id :: String, user_id :: String) -> Int!String do
-  let mem_result = Pool.query(pool, "SELECT role FROM org_memberships WHERE org_id = $1 AND user_id = $2", [org_id, user_id])
-  case mem_result do
-    Err(e) -> Err(e)
-    Ok(mem_rows) -> check_membership_proj_count(mem_rows)
-  end
-end
-
 # ---------------------------------------------------------------------------
 # POST /api/orgs/:org_id/projects helpers (strict bottom-up: leaves first)
 # ---------------------------------------------------------------------------
 
 fn insert_project(pool, org_id :: String, name :: String, project_id :: String) -> Response do
-  let insert_result = Tenant.with_org_schema(pool, org_id, fn(conn) do
+  let insert_result = with_org_schema(pool, org_id, fn(conn) do
     Pg.execute(conn, "INSERT INTO projects (id, name) VALUES ($1, $2)", [project_id, name])
   end)
   case insert_result do
@@ -170,7 +163,7 @@ fn format_project_list(rows) -> Response do
 end
 
 fn query_projects(pool, org_id :: String) -> Response do
-  let query_result = Tenant.with_org_schema(pool, org_id, fn(conn) do
+  let query_result = with_org_schema(pool, org_id, fn(conn) do
     Pg.query(conn, "SELECT id, name, created_at FROM projects ORDER BY created_at", [])
   end)
   case query_result do
@@ -214,7 +207,7 @@ fn build_dsn(key_prefix :: String, raw_key :: String, project_id :: String) -> S
 end
 
 fn insert_api_key(pool, org_id :: String, project_id :: String, label :: String, raw_key :: String, key_prefix :: String, key_hash :: String, key_id :: String) -> Response do
-  let insert_result = Tenant.with_org_schema(pool, org_id, fn(conn) do
+  let insert_result = with_org_schema(pool, org_id, fn(conn) do
     Pg.execute(conn, "INSERT INTO api_keys (id, project_id, key_hash, key_prefix, label) VALUES ($1, $2, $3, $4, $5)", [key_id, project_id, key_hash, key_prefix, label])
   end)
   case insert_result do
@@ -282,7 +275,7 @@ end
 # ---------------------------------------------------------------------------
 
 fn do_revoke_key(pool, org_id :: String, key_id :: String) -> Response do
-  let revoke_result = Tenant.with_org_schema(pool, org_id, fn(conn) do
+  let revoke_result = with_org_schema(pool, org_id, fn(conn) do
     Pg.execute(conn, "UPDATE api_keys SET revoked_at = NOW() WHERE id = $1 AND revoked_at IS NULL", [key_id])
   end)
   case revoke_result do
@@ -336,7 +329,7 @@ fn format_api_key_list(rows) -> Response do
 end
 
 fn query_api_keys(pool, org_id :: String, project_id :: String) -> Response do
-  let query_result = Tenant.with_org_schema(pool, org_id, fn(conn) do
+  let query_result = with_org_schema(pool, org_id, fn(conn) do
     Pg.query(conn, "SELECT id, project_id, key_prefix, label, created_at, revoked_at FROM api_keys WHERE project_id = $1 ORDER BY created_at DESC", [project_id])
   end)
   case query_result do

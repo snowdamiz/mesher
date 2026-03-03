@@ -1,4 +1,4 @@
-import Org.Schema
+from Org.Schema import provision_org_schema, schema_name_for_org
 
 # Organization HTTP handlers
 #
@@ -47,8 +47,7 @@ end
 
 fn validate_session_cookie(pool, session_id :: String) -> String!String do
   let rows = Pool.query(pool, "SELECT user_id FROM sessions WHERE id = $1 AND expires_at > NOW()", [session_id])?
-  let count = List.length(rows)
-  if count == 0 do
+  if List.length(rows) == 0 do
     Err("invalid or expired session")
   else
     Ok(Map.get(List.get(rows, 0), "user_id"))
@@ -80,7 +79,7 @@ end
 
 fn finish_provision(pool, conn, org_id :: String, name :: String, schema_name :: String) -> Response do
   Pool.checkin(pool, conn)
-  let _ = Schema.provision_org_schema(pool, org_id)
+  let _ = provision_org_schema(pool, org_id)
   HTTP.response(201, json { id: org_id, name: name, schema_name: schema_name })
 end
 
@@ -118,7 +117,7 @@ end
 
 fn execute_create_org(pool, user_id :: String, name :: String) -> Response do
   let org_id = Crypto.uuid4()
-  let schema_name = Schema.schema_name_for_org(org_id)
+  let schema_name = schema_name_for_org(org_id)
   let membership_id = Crypto.uuid4()
   let checkout_result = Pool.checkout(pool)
   case checkout_result do
@@ -146,7 +145,7 @@ fn create_org_from_json(pool, user_id :: String, body_json) -> Response do
 end
 
 fn create_org_with_body(pool, user_id :: String, body :: String) -> Response do
-  let parsed = JSON.parse(body)
+  let parsed = Json.parse(body)
   case parsed do
     Err(_) -> HTTP.response(400, json { error: "invalid JSON body" })
     Ok(body_json) -> create_org_from_json(pool, user_id, body_json)

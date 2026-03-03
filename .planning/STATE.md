@@ -77,12 +77,12 @@ Recent decisions affecting current work:
 - [Phase 01]: on_message and on_close callbacks must return () explicitly (not Int from Ws.send)
 - [Phase 01]: Case arm expressions must be on same line as -> (no multi-line bodies)
 - [01-03]: Native Crypto.uuid4() for session IDs, pgcrypto crypt() for bcrypt password verification (bcrypt not in Mesh stdlib; sha256/sha512/uuid4 are available)
-- [01-03]: Mesh has no cross-file function visibility (import/module both fail) -- all route handlers must live in same file as router
+- ~~[01-03]: Mesh has no cross-file function visibility (import/module both fail) -- all route handlers must live in same file as router~~ DISPROVEN: `from Module import func` works correctly (verified against mesh/mesher reference project)
 - [01-03]: Mesh HTTP stdlib has no response header API (no set_header/header/with_header) -- session ID returned in JSON body
-- [01-03]: Avoid ? operator in handler functions to prevent Result type pollution; use explicit case matching
-- [01-04]: Cross-module imports via `import Org.Handlers` / `import Org.Schema` with `pub fn` for inter-file access
+- ~~[01-03]: Avoid ? operator in handler functions to prevent Result type pollution; use explicit case matching~~ DISPROVEN: ? operator works with `-> Type!String` return annotations. Only avoid in functions returning Response (not a Result type) or Unit/void functions
+- [01-04]: Cross-module imports use `from Module import func1, func2` syntax with `pub fn` for inter-file access
 - [01-04]: Bottom-up function ordering required in Mesh (no forward references); leaf helpers first, public entry points last
-- [01-04]: Cannot use ? operator in Response-returning functions; use explicit case on Result types
+- [01-04]: Cannot use ? operator in Response-returning or Unit-returning functions; use explicit case on Result types (? requires -> Type!Error return annotation)
 - [01-04]: Bind function call results to variables before if conditions (Mesh parser limitation)
 - [01-04]: JSON.parse returns Json type (use Json.get), not Map type (not Map.get)
 - [01-04]: Org schema provisioning uses DDL with string interpolation (PG DDL cannot use $N params)
