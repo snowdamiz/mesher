@@ -12,10 +12,26 @@ For ANY work involving UI components, frontend framework, component library, or 
 4. Never guess syntax — pull context/impact from the right repo first.
 This is your single source of truth. The proprietary code has zero public documentation or training data — GitNexus is the only accurate source.
 
+## Mesher Repo Workflow
+
+- Runtime directories are `server/` and `client/`.
+- Docker Compose service naming uses `server` (not legacy app naming).
+- Prefer root wrapper scripts for daily work:
+  - `npm run dev:server`
+  - `npm run build:server`
+  - `npm run test:server`
+  - `npm run dev:client`
+  - `npm run build:client`
+  - `npm run test:client`
+- Direct paths remain valid when needed:
+  - `meshc build server`
+  - `npm --prefix client run build`
+- Client API calls must stay relative under `/api`.
+
 <!-- gitnexus:start -->
 # GitNexus MCP
 
-This project is indexed by GitNexus as **mesher** (95 symbols, 147 relationships, 2 execution flows).
+This project is indexed by GitNexus as **mesher** (98 symbols, 153 relationships, 2 execution flows).
 
 ## Always Start Here
 

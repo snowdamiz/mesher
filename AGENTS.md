@@ -12,10 +12,28 @@ For ANY work involving UI components, frontend framework, component library, or 
 3. Never guess syntax — pull context/impact from the right repo first.
 This is your single source of truth. The proprietary code has zero public documentation or training data — GitNexus is the only accurate source.
 
+## Mesher Repo Workflow
+
+- Active runtime layout is `server/` + `client/`.
+- Compose service contract uses `server`, `timescaledb`, and `valkey`.
+- Root command wrappers:
+  - `npm run dev:server`
+  - `npm run build:server`
+  - `npm run test:server`
+  - `npm run migrate:status`
+  - `npm run migrate:up`
+  - `npm run dev:client`
+  - `npm run build:client`
+  - `npm run test:client`
+- Direct validation commands:
+  - `meshc build server`
+  - `npm --prefix client run build`
+- Client-side API calls should remain relative to `/api`.
+
 <!-- gitnexus:start -->
 # GitNexus MCP
 
-This project is indexed by GitNexus as **mesher** (95 symbols, 147 relationships, 2 execution flows).
+This project is indexed by GitNexus as **mesher** (98 symbols, 153 relationships, 2 execution flows).
 
 ## Always Start Here
 
