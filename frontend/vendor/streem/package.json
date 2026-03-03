@@ -1,0 +1,22 @@
+{
+  "name": "streem",
+  "version": "0.0.0-stub",
+  "description": "Local stub for proprietary Streem-2 framework. Replace with real package when available.",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    },
+    "./vite": {
+      "types": "./vite/index.d.ts",
+      "import": "./vite/index.js"
+    },
+    "./jsx-runtime": {
+      "types": "./jsx-runtime.d.ts",
+      "import": "./jsx-runtime.js"
+    }
+  }
+}
