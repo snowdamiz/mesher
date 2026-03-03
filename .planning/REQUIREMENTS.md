@@ -18,7 +18,7 @@
 
 ### ORG — Organizations & Projects
 
-- [ ] **ORG-01**: User can create an organization and become its owner
+- [x] **ORG-01**: User can create an organization and become its owner
 - [x] **ORG-02**: Organization owner can invite members by email
 - [x] **ORG-03**: Invited user can accept an invitation and join the organization
 - [x] **ORG-04**: User can create a project scoped to their organization
@@ -153,7 +153,7 @@ These are **explicitly excluded** from Mesher. Reasons are provided to prevent r
 | AUTH-03 | Phase 1 | Complete |
 | AUTH-04 | Phase 1 | Complete |
 | AUTH-05 | Phase 1 | Complete |
-| ORG-01 | Phase 1 | Pending |
+| ORG-01 | Phase 1 | Complete |
 | ORG-02 | Phase 1 | Complete |
 | ORG-03 | Phase 1 | Complete |
 | ORG-04 | Phase 1 | Complete |
