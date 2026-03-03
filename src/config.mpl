@@ -43,6 +43,18 @@ module Config do
     Env.get("SMTP_PASS", "")
   end
 
+  pub fn smtp_from() -> String do
+    Env.get("SMTP_FROM", "noreply@mesher.local")
+  end
+
+  pub fn app_url() -> String do
+    Env.get("APP_URL", "http://localhost:8080")
+  end
+
+  pub fn password_reset_expiry_minutes() -> Int do
+    Env.get_int("PASSWORD_RESET_EXPIRY_MINUTES", 60)
+  end
+
   pub fn google_client_id() -> String do
     Env.get("GOOGLE_CLIENT_ID", "")
   end
