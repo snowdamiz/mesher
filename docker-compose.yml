@@ -1,0 +1,55 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+    environment:
+      DATABASE_URL: "postgres://mesh:mesh@timescaledb:5432/mesher"
+      VALKEY_URL: "valkey://valkey:6379"
+      MESHER_TIER: "${MESHER_TIER:-oss}"
+      SESSION_SECRET: "${SESSION_SECRET:-dev-secret-change-in-production}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASS: "${SMTP_PASS:-}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    restart: unless-stopped
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      POSTGRES_DB: mesher
+      POSTGRES_USER: mesh
+      POSTGRES_PASSWORD: mesh
+      TIMESCALEDB_TELEMETRY: "off"
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mesh -d mesher"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  valkey:
+    image: valkey/valkey:9-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  timescaledb_data:
+  valkey_data:
