@@ -23,7 +23,7 @@
 - [ ] **ORG-03**: Invited user can accept an invitation and join the organization
 - [ ] **ORG-04**: User can create a project scoped to their organization
 - [ ] **ORG-05**: User can generate and revoke API keys / DSNs per project
-- [ ] **ORG-06**: Each organization is provisioned with its own PostgreSQL schema at signup (schema-per-org isolation)
+- [x] **ORG-06**: Each organization is provisioned with its own PostgreSQL schema at signup (schema-per-org isolation)
 
 ### ERR — Error Tracking & Issue Management
 
@@ -87,9 +87,9 @@
 
 ### DEPLOY — Deployment & Infrastructure
 
-- [ ] **DEPLOY-01**: Self-hosted deployment runs with `docker compose up` using a 3-service stack: mesher app, TimescaleDB, Valkey — no additional services required
-- [ ] **DEPLOY-02**: All runtime configuration is driven by environment variables; no config file is required for a basic deployment
-- [ ] **DEPLOY-03**: Docker Compose stack includes health checks for all three services and the app waits for database readiness before starting
+- [x] **DEPLOY-01**: Self-hosted deployment runs with `docker compose up` using a 3-service stack: mesher app, TimescaleDB, Valkey — no additional services required
+- [x] **DEPLOY-02**: All runtime configuration is driven by environment variables; no config file is required for a basic deployment
+- [x] **DEPLOY-03**: Docker Compose stack includes health checks for all three services and the app waits for database readiness before starting
 - [ ] **DEPLOY-04**: Production-scale deployment is supported via a Kubernetes Helm chart with Horizontal Pod Autoscaler on the ingestion component
 
 ### AI — AI Features (SaaS Tier Only)
@@ -158,10 +158,10 @@ These are **explicitly excluded** from Mesher. Reasons are provided to prevent r
 | ORG-03 | Phase 1 | Pending |
 | ORG-04 | Phase 1 | Pending |
 | ORG-05 | Phase 1 | Pending |
-| ORG-06 | Phase 1 | Pending |
-| DEPLOY-01 | Phase 1 | Pending |
-| DEPLOY-02 | Phase 1 | Pending |
-| DEPLOY-03 | Phase 1 | Pending |
+| ORG-06 | Phase 1 | Complete |
+| DEPLOY-01 | Phase 1 | Complete |
+| DEPLOY-02 | Phase 1 | Complete |
+| DEPLOY-03 | Phase 1 | Complete |
 | INGEST-01 | Phase 2 | Pending |
 | INGEST-02 | Phase 2 | Pending |
 | INGEST-03 | Phase 2 | Pending |

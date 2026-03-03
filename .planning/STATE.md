@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 Phase: 1 of 9 (Foundation + Toolchain Spike)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-03 — Roadmap created from requirements + research
+Plan: 1 of 6 in current phase
+Status: Executing
+Last activity: 2026-03-03 — Completed 01-01-PLAN.md (project scaffold + migrations + tenant isolation)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 2%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 2min
+- Total execution time: 0.03 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 1 - Foundation | 1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: none yet
-- Trend: -
+- Last 5 plans: 01-01 (2min)
+- Trend: starting
 
 *Updated after each plan completion*
 
@@ -46,6 +46,9 @@ Recent decisions affecting current work:
 - [Init]: Schema-per-org isolation for strong data boundaries and SaaS compliance story
 - [Init]: OTLP as primary ingestion protocol — industry standard, no vendor lock-in
 - [Init]: Mesh actor model for ingestion pipeline — natural fit for high-throughput event processing
+- [01-01]: PG-backed sessions instead of Valkey for Phase 1 (Mesh may lack Valkey client; Valkey stays in stack for future phases)
+- [01-01]: search_path always includes public for TimescaleDB extension access in tenant isolation
+- [01-01]: Placeholder Dockerfile until Mesh SDK distribution method is known
 
 ### Pending Todos
 
@@ -62,5 +65,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Roadmap written — ready to plan Phase 1
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None
