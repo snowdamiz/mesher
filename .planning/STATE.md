@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-03-03T08:31:25.274Z"
+last_updated: "2026-03-03T09:04:00Z"
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
+  completed_plans: 4
 ---
 
 # Project State
@@ -23,33 +23,35 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 Phase: 1 of 9 (Foundation + Toolchain Spike)
-Plan: 2 of 6 in current phase
+Plan: 4 of 6 in current phase
 Status: Executing
-Last activity: 2026-03-03 — Completed 01-02-PLAN.md (toolchain spikes: WS actor, PG SET LOCAL, WS reconnect, chart live-update)
+Last activity: 2026-03-03 — Completed 01-04-PLAN.md (org CRUD with schema provisioning)
 
-Progress: [██░░░░░░░░] 4%
+Progress: [███████░░░] 8%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 23min
-- Total execution time: 0.78 hours
+- Total plans completed: 4
+- Average duration: 21min
+- Total execution time: 1.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 - Foundation | 2 | 47min | 23min |
+| 1 - Foundation | 4 | 84min | 21min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2min), 01-02 (45min)
-- Trend: starting
+- Last 5 plans: 01-01 (2min), 01-02 (45min), 01-03 (12min), 01-04 (25min)
+- Trend: stabilizing
 
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P01 | 2min | 3 tasks | 12 files |
 | Phase 01 P02 | 45min | 2 tasks | 8 files |
+| Phase 01 P03 | 12min | 2 tasks | 2 files |
+| Phase 01 P04 | 25min | 1 tasks | 3 files |
 
 *Updated after each plan completion*
 
@@ -72,6 +74,12 @@ Recent decisions affecting current work:
 - [Phase 01]: Ws.serve must be wrapped in separate function from spawn to avoid Pid type inference bleed
 - [Phase 01]: on_message and on_close callbacks must return () explicitly (not Int from Ws.send)
 - [Phase 01]: Case arm expressions must be on same line as -> (no multi-line bodies)
+- [01-04]: Cross-module imports via `import Org.Handlers` / `import Org.Schema` with `pub fn` for inter-file access
+- [01-04]: Bottom-up function ordering required in Mesh (no forward references); leaf helpers first, public entry points last
+- [01-04]: Cannot use ? operator in Response-returning functions; use explicit case on Result types
+- [01-04]: Bind function call results to variables before if conditions (Mesh parser limitation)
+- [01-04]: JSON.parse returns Json type (use Json.get), not Map type (not Map.get)
+- [01-04]: Org schema provisioning uses DDL with string interpolation (PG DDL cannot use $N params)
 
 ### Pending Todos
 
@@ -88,5 +96,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 01-02-PLAN.md
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
