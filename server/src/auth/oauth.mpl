@@ -10,6 +10,7 @@
 # No inline SQL in this module.
 
 from Src.Auth.Guards import require_query, guard_error
+from Src.Auth.Cookies import session_cookie_header
 from Src.Storage.Queries import store_oauth_state, validate_oauth_state, delete_oauth_state, upsert_oauth_user, create_session
 
 fn build_google_auth_url(state :: String) -> String do
@@ -27,7 +28,7 @@ fn create_oauth_session_response(pool, user_id :: String) -> Response do
   let session_result = create_session(pool, user_id)
   case session_result do
     Err(_) -> HTTP.response(500, json { error: "session creation failed" })
-    Ok(token) -> HTTP.response_with_headers(302, "", %{"Set-Cookie" => "mesher_session=" <> token <> "; HttpOnly; Path=/; SameSite=Lax; Max-Age=86400", "Location" => "/"})
+    Ok(token) -> HTTP.response_with_headers(302, "", %{"Set-Cookie" => session_cookie_header(token), "Location" => "/"})
   end
 end
 
@@ -41,22 +42,25 @@ fn exchange_code_stub(pool, code :: String) -> Response do
   HTTP.response(501, json { error: "OAuth token exchange not yet implemented - Mesh HTTP client API needs verification", code: code })
 end
 
+fn is_saas_tier() -> Bool do
+  Env.get("MESHER_TIER", "oss") == "saas"
+end
+
+fn start_oauth_flow(pool) -> Response do
+  let state = Crypto.uuid4()
+  case store_oauth_state(pool, state) do
+    Err(_) -> HTTP.response(500, json { error: "failed to store OAuth state" })
+    Ok(_) -> HTTP.response_with_headers(302, "", %{"Location" => build_google_auth_url(state)})
+  end
+end
+
 # GET /api/auth/oauth/google
 pub fn google_oauth_start(pool, request) -> Response do
-  let tier = Env.get("MESHER_TIER", "oss")
-  let cond = tier != "saas"
-  if cond do
-    saas_only_error()
+  let _ = request
+  if is_saas_tier() do
+    start_oauth_flow(pool)
   else
-    let state = Crypto.uuid4()
-    let store_result = store_oauth_state(pool, state)
-    case store_result do
-      Err(_) -> HTTP.response(500, json { error: "failed to store OAuth state" })
-      Ok(_) -> do
-        let auth_url = build_google_auth_url(state)
-        HTTP.response_with_headers(302, "", %{"Location" => auth_url})
-      end
-    end
+    saas_only_error()
   end
 end
 
@@ -79,16 +83,18 @@ fn do_oauth_callback(pool, request) -> Response!String do
   end
 end
 
+fn callback_oauth_flow(pool, request) -> Response do
+  case do_oauth_callback(pool, request) do
+    Err(e) -> guard_error(e)
+    Ok(r) -> r
+  end
+end
+
 # GET /api/auth/oauth/google/callback
 pub fn google_oauth_callback(pool, request) -> Response do
-  let tier = Env.get("MESHER_TIER", "oss")
-  let cond = tier != "saas"
-  if cond do
-    saas_only_error()
+  if is_saas_tier() do
+    callback_oauth_flow(pool, request)
   else
-    case do_oauth_callback(pool, request) do
-      Err(e) -> guard_error(e)
-      Ok(r) -> r
-    end
+    saas_only_error()
   end
 end

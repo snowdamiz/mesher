@@ -5,6 +5,14 @@
 
 from Src.Storage.Queries import validate_session
 
+pub fn session_cookie_header(token :: String) -> String do
+  "mesher_session=" <> token <> "; HttpOnly; Path=/; SameSite=Lax; Max-Age=86400"
+end
+
+pub fn clear_session_cookie_header() -> String do
+  "mesher_session=; HttpOnly; Path=/; Max-Age=0"
+end
+
 # Recursive search for mesher_session cookie in parsed pairs.
 fn find_session_at_index(pairs, idx :: Int, len :: Int) -> String!String do
   if idx >= len do
