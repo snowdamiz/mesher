@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-04T03:47:13Z"
+status: executing
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-03-04T03:53:01.788Z"
 last_activity: 2026-03-04 - Completed Phase 02 Plan 04 (Sentry envelope handler)
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 18
   percent: 89
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 2 (Error Ingestion Core) — Plan 04 complete, Plan 05 next
+**Current focus:** Phase 2 (Error Ingestion Core) — Plan 05 complete, Plan 06 next
 
 ## Current Position
 
 Phase: 02 of 9 (Error Ingestion Core)
-Plan: 5 of 6 in current phase
+Plan: 6 of 6 in current phase
 Status: In Progress
-Last activity: 2026-03-04 - Completed Phase 02 Plan 04 (Sentry envelope handler)
+Last activity: 2026-03-04 - Completed Phase 02 Plan 05 (OTLP + generic API handlers)
 
-Progress: [████████░░] 89%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [████████░░] 89%
 | Phase 02 P02 | 7min | 2 tasks | 2 files |
 | Phase 02 P03 | 6min | 2 tasks | 3 files |
 | Phase 02 P04 | 5min | 2 tasks | 3 files |
+| Phase 02 P05 | 9min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,9 @@ Recent decisions affecting current work:
 - [02-04]: Nested if/else in let bindings causes Mesh parse errors -- extract to helper functions (brace_depth_delta, bracket_depth_delta)
 - [02-04]: Hardcoded 1000 events/minute rate limit default since Int.parse unavailable in Mesh stdlib
 - [02-04]: Json.stringify does not exist in Mesh -- use raw body strings directly for string-based JSON extraction
+- [Phase 02]: String-based JSON parsing for OTLP payloads (no Json.stringify in Mesh)
+- [Phase 02]: OTLP routes on same port 8080 with path routing; port 4318 mapped via docker-compose
+- [Phase 02]: Default 1000 events/min rate limit hardcoded (Int.parse unavailable in Mesh)
 
 ### Roadmap Evolution
 
@@ -170,6 +174,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T03:47:13Z
-Stopped at: Completed 02-04-PLAN.md
-Resume file: .planning/phases/02-error-ingestion-core/02-05-PLAN.md
+Last session: 2026-03-04T03:52:53.948Z
+Stopped at: Completed 02-05-PLAN.md
+Resume file: None
