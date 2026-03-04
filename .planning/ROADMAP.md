@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation + Toolchain Spike** - Auth, orgs, Docker Compose skeleton, and beta toolchain validation
 - [ ] **Phase 1.1: Update project to use Mesh built-in ORM for migrations and queries** (INSERTED)
-- [ ] **Phase 1.2: Reorganize repo with server and client directories** (INSERTED)
+- [x] **Phase 1.2: Reorganize repo with server and client directories** (INSERTED)
 - [ ] **Phase 2: Error Ingestion Core** - OTLP/HTTP + Sentry envelope ingestion, fingerprinting, event storage
 - [ ] **Phase 3: Issue Management + REST API** - Issue list, lifecycle, filtering, timeline, QueryActor REST API
 - [ ] **Phase 4: Metrics Ingestion + Dashboards** - Fixed-schema metrics, TimescaleDB hypertables, line/area charts
@@ -165,6 +165,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Foundation + Toolchain Spike | 4/6 | In Progress | - |
 | 1.1. ORM Migration (INSERTED) | 4/4 | Complete | 2026-03-03 |
+| 1.2. Repo Reorganization (INSERTED) | 3/3 | Complete | 2026-03-04 |
 | 2. Error Ingestion Core | 0/TBD | Not started | - |
 | 3. Issue Management + REST API | 0/TBD | Not started | - |
 | 4. Metrics Ingestion + Dashboards | 0/TBD | Not started | - |
