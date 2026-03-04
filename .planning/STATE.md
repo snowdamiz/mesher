@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02.1-02-PLAN.md
-last_updated: "2026-03-04T06:01:37.790Z"
-last_activity: 2026-03-04 - Completed Phase 02.1 Plan 02 (auth nesting refactor parity gates)
+stopped_at: Completed 02.1-01-PLAN.md
+last_updated: "2026-03-04T06:15:54.059Z"
+last_activity: 2026-03-04 - Completed Phase 02.1 Plan 01 (ingest deep nesting refactor parity gates)
 progress:
   total_phases: 12
   completed_phases: 4
   total_plans: 22
-  completed_plans: 20
-  percent: 91
+  completed_plans: 21
+  percent: 95
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 Phase: 02.1 of 12 (server deep nesting refactor) -- IN PROGRESS
 Plan: 2 of 3 in current phase (COMPLETE)
 Status: Executing Phase 02.1
-Last activity: 2026-03-04 - Completed Phase 02.1 Plan 02 (auth nesting refactor parity gates)
+Last activity: 2026-03-04 - Completed Phase 02.1 Plan 01 (ingest deep nesting refactor parity gates)
 
-Progress: [█████████░] 91%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Progress: [█████████░] 91%
 | Phase 02 P05 | 9min | 2 tasks | 5 files |
 | Phase 02 P06 | 4min | 2 tasks | 2 files |
 | Phase 02.1 P02 | 4min | 3 tasks | 5 files |
+| Phase 02.1 P01 | 21 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,9 @@ Recent decisions affecting current work:
 - [Phase 02-06]: Integration tests use direct SQL seeding via psql for test isolation; rate limit test verifies mechanism structurally
 - [Phase 02.1]: Mapped helper error tags back to existing auth response/status contracts to preserve behavior during flattening
 - [Phase 02.1]: Validated parity gates in a clean detached worktree due unrelated local ingest refactor edits in active workspace
+- [Phase 02.1]: Centralized ingest preflight through validate_ingest_request with protocol-aware response semantics.
+- [Phase 02.1]: Unified OTLP logs and traces behind a single mode-driven internal handler while preserving public signatures.
+- [Phase 02.1]: Applied strict module-by-module build/test parity gates with one checkpoint commit per ingest module.
 
 ### Roadmap Evolution
 
@@ -181,6 +185,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T06:01:37.788Z
-Stopped at: Completed 02.1-02-PLAN.md
+Last session: 2026-03-04T06:15:54.057Z
+Stopped at: Completed 02.1-01-PLAN.md
 Resume file: None
