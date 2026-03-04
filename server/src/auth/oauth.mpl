@@ -25,7 +25,7 @@ fn saas_only_error() -> Response do
 end
 
 fn create_oauth_session_response(pool, user_id :: String) -> Response do
-  let session_result = create_session(pool, user_id)
+  let session_result = user_id |2> create_session(pool)
   case session_result do
     Err(_) -> HTTP.response(500, json { error: "session creation failed" })
     Ok(token) -> HTTP.response_with_headers(302, "", %{"Set-Cookie" => session_cookie_header(token), "Location" => "/"})
@@ -72,11 +72,12 @@ end
 
 fn do_oauth_callback(pool, request) -> Response!String do
   let params = extract_oauth_params(request)?
-  let code = Map.get(params, "code")
-  let state = Map.get(params, "state")
-  let cond = validate_oauth_state(pool, state)?
+  let code = params |> Map.get("code")
+  let state = params |> Map.get("state")
+  let cond_result = state |2> validate_oauth_state(pool)
+  let cond = cond_result?
   if cond do
-    let _ = delete_oauth_state(pool, state)
+    let _ = state |2> delete_oauth_state(pool)
     Ok(exchange_code_stub(pool, code))
   else
     Err("invalid or expired OAuth state")
