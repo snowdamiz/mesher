@@ -43,7 +43,7 @@
 
 - [ ] **INGEST-01**: System accepts error events and trace data via OTLP/HTTP on port 4318 (protobuf primary, JSON fallback)
 - [ ] **INGEST-02**: System accepts infrastructure metrics via OTLP/HTTP on port 4318
-- [ ] **INGEST-03**: System accepts Sentry SDK events via the Sentry envelope format at `/api/{project_id}/envelope/` — existing Sentry DSN can be pointed at Mesher without SDK code changes
+- [x] **INGEST-03**: System accepts Sentry SDK events via the Sentry envelope format at `/api/{project_id}/envelope/` — existing Sentry DSN can be pointed at Mesher without SDK code changes
 - [ ] **INGEST-04**: System accepts error events and metrics via a generic JSON HTTP REST API for custom integrations
 - [x] **INGEST-05**: All ingest endpoints authenticate requests via project-scoped API key or DSN
 - [x] **INGEST-06**: System enforces per-org ingest rate limits and returns HTTP 429 with a Retry-After header when exceeded
@@ -164,7 +164,7 @@ These are **explicitly excluded** from Mesher. Reasons are provided to prevent r
 | DEPLOY-03 | Phase 1 | Complete |
 | INGEST-01 | Phase 2 | Pending |
 | INGEST-02 | Phase 2 | Pending |
-| INGEST-03 | Phase 2 | Pending |
+| INGEST-03 | Phase 2 | Complete |
 | INGEST-04 | Phase 2 | Pending |
 | INGEST-05 | Phase 2 | Complete |
 | INGEST-06 | Phase 2 | Complete |

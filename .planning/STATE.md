@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-04T03:37:24Z"
-last_activity: 2026-03-04 - Completed Phase 02 Plan 03 (auth, scrubber, fingerprint modules)
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-03-04T03:47:13Z"
+last_activity: 2026-03-04 - Completed Phase 02 Plan 04 (Sentry envelope handler)
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 19
-  completed_plans: 16
-  percent: 84
+  completed_plans: 17
+  percent: 89
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 2 (Error Ingestion Core) — Plan 03 complete, Plan 04 next
+**Current focus:** Phase 2 (Error Ingestion Core) — Plan 04 complete, Plan 05 next
 
 ## Current Position
 
 Phase: 02 of 9 (Error Ingestion Core)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: In Progress
-Last activity: 2026-03-04 - Completed Phase 02 Plan 03 (auth, scrubber, fingerprint modules)
+Last activity: 2026-03-04 - Completed Phase 02 Plan 04 (Sentry envelope handler)
 
-Progress: [████████░░] 84%
+Progress: [████████░░] 89%
 
 ## Performance Metrics
 
@@ -47,7 +47,7 @@ Progress: [████████░░] 84%
 | 1.1 - ORM Migration | 4 | 8min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01.2-02 (5min), 01.2-03 (18min), 02-01 (3min), 02-02 (7min), 02-03 (6min)
+- Last 5 plans: 01.2-03 (18min), 02-01 (3min), 02-02 (7min), 02-03 (6min), 02-04 (5min)
 - Trend: accelerating
 
 | Plan | Duration | Tasks | Files |
@@ -70,6 +70,7 @@ Progress: [████████░░] 84%
 | Phase 02 P01 | 3min | 2 tasks | 4 files |
 | Phase 02 P02 | 7min | 2 tasks | 2 files |
 | Phase 02 P03 | 6min | 2 tasks | 3 files |
+| Phase 02 P04 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,10 @@ Recent decisions affecting current work:
 - [02-03]: PII scrubbing uses String-based pattern matching (no regex in Mesh stdlib); covers 17 sensitive key patterns + auth headers
 - [02-03]: Fingerprint processes frames from end of array (Sentry oldest-to-newest) to get most recent first; avoids needing List.reverse
 - [02-03]: `after` is a reserved keyword in Mesh -- cannot be used as variable name
+- [02-04]: String-based JSON field extraction for envelope parsing (consistent with scrubber/fingerprint patterns, avoids Result handling from Json.parse)
+- [02-04]: Nested if/else in let bindings causes Mesh parse errors -- extract to helper functions (brace_depth_delta, bracket_depth_delta)
+- [02-04]: Hardcoded 1000 events/minute rate limit default since Int.parse unavailable in Mesh stdlib
+- [02-04]: Json.stringify does not exist in Mesh -- use raw body strings directly for string-based JSON extraction
 
 ### Roadmap Evolution
 
@@ -165,6 +170,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T03:37:24Z
-Stopped at: Completed 02-03-PLAN.md
-Resume file: .planning/phases/02-error-ingestion-core/02-04-PLAN.md
+Last session: 2026-03-04T03:47:13Z
+Stopped at: Completed 02-04-PLAN.md
+Resume file: .planning/phases/02-error-ingestion-core/02-05-PLAN.md
