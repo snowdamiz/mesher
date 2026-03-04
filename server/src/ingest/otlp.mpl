@@ -35,12 +35,12 @@ fn json_num_field(json_str :: String, field :: String) -> String do
   else
     let search = "\"" <> field <> "\":"
     if String.contains(json_str, search) do
-      let parts = String.split(json_str, search)
+      let parts = json_str |> String.split(search)
       if List.length(parts) >= 2 do
         let rest = List.last(parts)
-        let comma_parts = String.split(rest, ",")
+        let comma_parts = rest |> String.split(",")
         let first = List.head(comma_parts)
-        let brace_parts = String.split(first, "}")
+        let brace_parts = first |> String.split("}")
         String.trim(List.head(brace_parts))
       else
         ""
@@ -55,7 +55,7 @@ end
 # OTLP attributes: [{"key":"name","value":{"stringValue":"val"}}]
 fn extract_attr_value(rest :: String, marker :: String) -> String do
   if String.contains(rest, marker) do
-    let parts = String.split(rest, marker)
+    let parts = rest |> String.split(marker)
     if List.length(parts) >= 2 do
       let value_tail = List.last(parts)
       let end_parts = String.split(value_tail, "\"")
@@ -82,7 +82,7 @@ fn get_otlp_attr(attrs_str :: String, key :: String) -> String do
   if !String.contains(attrs_str, search) do
     ""
   else
-    let parts = String.split(attrs_str, search)
+    let parts = attrs_str |> String.split(search)
     if List.length(parts) >= 2 do
       extract_otlp_value(List.last(parts))
     else
@@ -95,10 +95,10 @@ end
 fn extract_body_string(json_str :: String) -> String do
   let search = "\"body\":{\"stringValue\":\""
   if String.contains(json_str, search) do
-    let parts = String.split(json_str, search)
+    let parts = json_str |> String.split(search)
     if List.length(parts) >= 2 do
       let rest = List.last(parts)
-      let end_parts = String.split(rest, "\"")
+      let end_parts = rest |> String.split("\"")
       if List.length(end_parts) > 0 do
         List.head(end_parts)
       else
@@ -150,19 +150,19 @@ end
 
 # Parse a single "at funcName (file:line:col)" line into a JSON frame.
 fn parse_at_line(line :: String) -> String do
-  let trimmed = String.trim(line)
+  let trimmed = line |> String.trim()
   if String.starts_with(trimmed, "at ") do
     let without_at = String.slice(trimmed, 3, String.length(trimmed))
     if String.contains(without_at, " (") do
-      let paren_parts = String.split(without_at, " (")
+      let paren_parts = without_at |> String.split(" (")
       let func_name = List.head(paren_parts)
-      let file_part = String.replace(List.last(paren_parts), ")", "")
-      let colon_parts = String.split(file_part, ":")
+      let file_part = List.last(paren_parts) |> String.replace(")", "")
+      let colon_parts = file_part |> String.split(":")
       let filename = List.head(colon_parts)
       let in_app_str = if String.contains(filename, "node_modules/") do "false" else "true" end
       "{\"filename\":\"" <> filename <> "\",\"function\":\"" <> func_name <> "\",\"in_app\":" <> in_app_str <> "}"
     else
-      let colon_parts = String.split(without_at, ":")
+      let colon_parts = without_at |> String.split(":")
       let filename = List.head(colon_parts)
       let in_app_str = if String.contains(filename, "node_modules/") do "false" else "true" end
       "{\"filename\":\"" <> filename <> "\",\"function\":\"<anonymous>\",\"in_app\":" <> in_app_str <> "}"
@@ -195,20 +195,21 @@ fn process_otlp_event(pool :: PoolHandle, project_id :: String, org_id :: String
 
   # Scrub all fields
   let scrubbed = scrub_event_fields(pool, org_id, message, exception_message, stacktrace_json, "{}", "{}", "{}", server_name)?
-  let s_message = Map.get(scrubbed, "message")
-  let s_exception_value = Map.get(scrubbed, "exception_value")
-  let s_stacktrace_json = Map.get(scrubbed, "stacktrace_json")
-  let s_server_name = Map.get(scrubbed, "server_name")
+  let s_message = scrubbed |> Map.get("message")
+  let s_exception_value = scrubbed |> Map.get("exception_value")
+  let s_stacktrace_json = scrubbed |> Map.get("stacktrace_json")
+  let s_server_name = scrubbed |> Map.get("server_name")
 
   # Compute fingerprint
-  let fingerprint = compute_fingerprint(exception_type, s_stacktrace_json)
+  let fingerprint = s_stacktrace_json |2> compute_fingerprint(exception_type)
 
   # Build title
   let title = if exception_type != "" do exception_type <> ": " <> s_message else s_message end
 
   # Upsert issue
-  let issue_result = upsert_issue(pool, project_id, fingerprint, title, level)?
-  let issue_id = Map.get(issue_result, "id")
+  let issue_result_raw = fingerprint |3> upsert_issue(pool, project_id, title, level)
+  let issue_result = issue_result_raw?
+  let issue_id = issue_result |> Map.get("id")
 
   # Convert nano timestamp to timestamptz via SQL
   let ts_result = Repo.query_raw(pool, "SELECT to_timestamp($1::bigint / 1000000000.0)::text AS ts", [nano_timestamp])
@@ -292,17 +293,17 @@ end
 
 fn process_otlp_mode(pool :: PoolHandle, project_id :: String, org_id :: String, raw_body :: String, mode :: String) -> Int!String do
   if mode == "logs" do
-    let record_sections = String.split(raw_body, "\"logRecords\":[")
+    let record_sections = raw_body |> String.split("\"logRecords\":[")
     let num_sections = List.length(record_sections)
     if num_sections >= 2 do
       let records_part = List.last(record_sections)
-      let records = String.split(records_part, "},{")
+      let records = records_part |> String.split("},{")
       process_log_records(pool, project_id, org_id, records, raw_body, 0, List.length(records))
     else
       Ok(0)
     end
   else
-    let exception_sections = String.split(raw_body, "\"name\":\"exception\"")
+    let exception_sections = raw_body |> String.split("\"name\":\"exception\"")
     let num_exceptions = List.length(exception_sections)
     if num_exceptions >= 2 do
       process_trace_exceptions(pool, project_id, org_id, exception_sections, raw_body, 1, num_exceptions)
@@ -321,10 +322,10 @@ fn handle_otlp_mode(pool :: PoolHandle, request, mode :: String) -> Response do
     case preflight do
       Err(response) -> response
       Ok(ctx) -> do
-        let project_id = Map.get(ctx, "project_id")
-        let org_id = Map.get(ctx, "org_id")
-        let raw_body = Map.get(ctx, "body")
-        let _ = process_otlp_mode(pool, project_id, org_id, raw_body, mode)
+        let project_id = ctx |> Map.get("project_id")
+        let org_id = ctx |> Map.get("org_id")
+        let raw_body = ctx |> Map.get("body")
+        let _ = raw_body |4> process_otlp_mode(pool, project_id, org_id, mode)
         HTTP.response(200, json { partialSuccess: %{} })
       end
     end
