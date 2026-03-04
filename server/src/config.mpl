@@ -62,4 +62,17 @@ module Config do
   pub fn google_client_secret() -> String do
     Env.get("GOOGLE_CLIENT_SECRET", "")
   end
+
+  # Ingestion configuration
+  pub fn otlp_port() -> Int do
+    Env.get_int("OTLP_PORT", 4318)
+  end
+
+  pub fn rate_limit_default_per_minute() -> Int do
+    Env.get_int("RATE_LIMIT_DEFAULT_PER_MINUTE", 1000)
+  end
+
+  pub fn rate_limit_default_burst() -> Int do
+    Env.get_int("RATE_LIMIT_DEFAULT_BURST", 100)
+  end
 end

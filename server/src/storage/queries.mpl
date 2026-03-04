@@ -7,6 +7,7 @@
 
 from Src.Types.User import User, OrgMembership, Session, Invite, PasswordResetToken
 from Src.Types.Project import Organization, Project, ApiKey
+from Src.Types.Event import Issue, RateLimitConfig, ScrubRule
 
 # ============================================================================
 # User functions
@@ -459,5 +460,76 @@ pub fn upsert_oauth_user(pool :: PoolHandle, email :: String) -> String!String d
     else
       Err("upsert_oauth_user: password hashing failed")
     end
+  end
+end
+
+# ============================================================================
+# Ingestion query functions
+# ============================================================================
+
+# Upsert an issue by fingerprint. Creates a new issue or updates an existing one.
+# On conflict (same project_id + fingerprint): increments event_count, updates last_seen,
+# and resets status from resolved/ignored to open (regression detection).
+# Returns the issue id and current status.
+pub fn upsert_issue(pool :: PoolHandle, project_id :: String, fingerprint :: String, title :: String, level :: String) -> Map<String, String>!String do
+  let rows = Repo.query_raw(pool, "INSERT INTO issues (id, project_id, fingerprint, title, level, first_seen, last_seen, event_count, status) VALUES (gen_random_uuid(), $1::uuid, $2, $3, $4, now(), now(), 1, 'open') ON CONFLICT (project_id, fingerprint) DO UPDATE SET last_seen = now(), event_count = issues.event_count + 1, status = CASE WHEN issues.status IN ('resolved', 'ignored') THEN 'open' ELSE issues.status END RETURNING id::text, status", [project_id, fingerprint, title, level])?
+  if List.length(rows) > 0 do
+    Ok(List.head(rows))
+  else
+    Err("upsert_issue: no row returned")
+  end
+end
+
+# Insert an event into the events hypertable.
+# Uses Repo.query_raw due to the large number of columns (20+).
+# Returns the generated event UUID.
+pub fn insert_event(pool :: PoolHandle, project_id :: String, issue_id :: String, event_id :: String, timestamp :: String, platform :: String, level :: String, message :: String, exception_type :: String, exception_value :: String, stacktrace_json :: String, environment :: String, release_tag :: String, server_name :: String, tags_json :: String, extra_json :: String, contexts_json :: String, sdk_name :: String, sdk_version :: String, fingerprint :: String) -> String!String do
+  let rows = Repo.query_raw(pool, "INSERT INTO events (project_id, issue_id, event_id, timestamp, platform, level, message, exception_type, exception_value, stacktrace_json, environment, release_tag, server_name, tags_json, extra_json, contexts_json, sdk_name, sdk_version, fingerprint) VALUES ($1::uuid, $2::uuid, $3, $4::timestamptz, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING id::text", [project_id, issue_id, event_id, timestamp, platform, level, message, exception_type, exception_value, stacktrace_json, environment, release_tag, server_name, tags_json, extra_json, contexts_json, sdk_name, sdk_version, fingerprint])?
+  if List.length(rows) > 0 do
+    Ok(Map.get(List.head(rows), "id"))
+  else
+    Err("insert_event: no row returned")
+  end
+end
+
+# Get rate limit configuration for an organization.
+# Returns the config row with events_per_minute and burst_limit, or Err("not found").
+pub fn get_rate_limit_config(pool :: PoolHandle, org_id :: String) -> Map<String, String>!String do
+  let q = Query.from(RateLimitConfig.__table__())
+    |> Query.where_raw("org_id = ?::uuid", [org_id])
+    |> Query.select_raw(["id::text", "org_id::text", "events_per_minute::text", "burst_limit::text", "created_at::text", "updated_at::text"])
+  let rows = Repo.all(pool, q)?
+  if List.length(rows) > 0 do
+    Ok(List.head(rows))
+  else
+    Err("not found")
+  end
+end
+
+# Get all active scrub rules for an organization.
+# Returns a list of rule rows with pattern, replacement, and description.
+pub fn get_active_scrub_rules(pool :: PoolHandle, org_id :: String) -> List<Map<String, String>>!String do
+  let q = Query.from(ScrubRule.__table__())
+    |> Query.where_raw("org_id = ?::uuid AND is_active = true", [org_id])
+    |> Query.select_raw(["id::text", "org_id::text", "pattern", "replacement", "COALESCE(description, '') AS description", "created_at::text"])
+    |> Query.order_by_raw("created_at")
+  Repo.all(pool, q)
+end
+
+# Validate an API key for ingestion and resolve project + org context.
+# JOINs api_keys with projects to get project_id, org_id, and project name in one query.
+# Filters WHERE key_hash matches AND key is not revoked.
+# This is the core authentication query for all ingestion endpoints.
+pub fn validate_api_key_for_ingest(pool :: PoolHandle, key_hash :: String) -> Map<String, String>!String do
+  let q = Query.from(ApiKey.__table__())
+    |> Query.join_as(:inner, Project.__table__(), "p", "p.id = api_keys.project_id")
+    |> Query.where(:key_hash, key_hash)
+    |> Query.where_raw("api_keys.revoked_at IS NULL", [])
+    |> Query.select_raw(["api_keys.project_id::text", "p.org_id::text", "p.name AS project_name"])
+  let rows = Repo.all(pool, q)?
+  if List.length(rows) > 0 do
+    Ok(List.head(rows))
+  else
+    Err("invalid API key")
   end
 end
