@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02.1-01-PLAN.md
-last_updated: "2026-03-04T06:15:54.059Z"
-last_activity: 2026-03-04 - Completed Phase 02.1 Plan 01 (ingest deep nesting refactor parity gates)
+status: complete
+stopped_at: Completed 02.1-03-PLAN.md
+last_updated: "2026-03-04T06:31:31.667Z"
+last_activity: 2026-03-04 - Completed Phase 02.1 Plan 03 (pipe-pass and final server regression gates)
 progress:
   total_phases: 12
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 22
-  completed_plans: 21
-  percent: 95
+  completed_plans: 22
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 02.1 (server deep nesting refactor) -- IN PROGRESS
+**Current focus:** Phase 02.1 (server deep nesting refactor) -- COMPLETE
 
 ## Current Position
 
-Phase: 02.1 of 12 (server deep nesting refactor) -- IN PROGRESS
-Plan: 2 of 3 in current phase (COMPLETE)
-Status: Executing Phase 02.1
-Last activity: 2026-03-04 - Completed Phase 02.1 Plan 01 (ingest deep nesting refactor parity gates)
+Phase: 02.1 of 12 (server deep nesting refactor) -- COMPLETE
+Plan: 3 of 3 in current phase (COMPLETE)
+Status: Completed Phase 02.1
+Last activity: 2026-03-04 - Completed Phase 02.1 Plan 03 (pipe-pass and final server regression gates)
 
-Progress: [██████████] 95%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Progress: [██████████] 95%
 | Phase 02 P06 | 4min | 2 tasks | 2 files |
 | Phase 02.1 P02 | 4min | 3 tasks | 5 files |
 | Phase 02.1 P01 | 21 min | 3 tasks | 6 files |
+| Phase 02.1 P03 | 12 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,9 @@ Recent decisions affecting current work:
 - [Phase 02.1]: Centralized ingest preflight through validate_ingest_request with protocol-aware response semantics.
 - [Phase 02.1]: Unified OTLP logs and traces behind a single mode-driven internal handler while preserving public signatures.
 - [Phase 02.1]: Applied strict module-by-module build/test parity gates with one checkpoint commit per ingest module.
+- [Phase 02.1]: Used GitNexus detect_changes compare against 6734876 to snapshot full pipe-pass scope.
+- [Phase 02.1]: Slot-pipe calls are followed by separate Result unwrapping (no inline ? on slot-pipe expression).
+- [Phase 02.1]: Optional ingestion integration gate was attempted; environment lacked running server services, so compile/tests remained mandatory completion gates.
 
 ### Roadmap Evolution
 
@@ -185,6 +189,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T06:15:54.057Z
-Stopped at: Completed 02.1-01-PLAN.md
+Last session: 2026-03-04T06:31:31.665Z
+Stopped at: Completed 02.1-03-PLAN.md
 Resume file: None
