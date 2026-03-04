@@ -22,29 +22,35 @@ from Src.Storage.Queries import get_active_scrub_rules
 # Scrub a JSON key's value by replacing "key":"<value>" with "key":"[Filtered]".
 # Uses String.split on the key pattern, then reconstructs with [Filtered].
 # Only handles the first occurrence of each key for simplicity.
+fn build_filtered_value(before :: String, search :: String, value_and_rest :: String) -> String do
+  let val_parts = String.split(value_and_rest, "\"")
+  if List.length(val_parts) >= 2 do
+    let consumed = String.length(List.head(val_parts)) + 1
+    let rest_after_value = String.slice(value_and_rest, consumed, String.length(value_and_rest))
+    before <> search <> "[Filtered]\"" <> rest_after_value
+  else
+    before <> search <> "[Filtered]\"" <> value_and_rest
+  end
+end
+
+fn scrub_key_with_exact_match(input :: String, search :: String) -> String do
+  let parts = String.split(input, search)
+  if List.length(parts) < 2 do
+    input
+  else
+    let before = List.head(parts)
+    let value_and_rest = List.last(parts)
+    build_filtered_value(before, search, value_and_rest)
+  end
+end
+
 fn scrub_json_key_value(input :: String, key :: String) -> String do
   let search = "\"" <> key <> "\":\""
-  if String.contains(String.lower(input), String.lower(search)) do
-    # Find the key pattern in the original string (case-insensitive match)
-    # We need to split on the actual key in the input, handling case
-    let parts = String.split(input, search)
-    if List.length(parts) >= 2 do
-      let before = List.head(parts)
-      let value_and_rest = List.last(parts)
-      # Find the closing quote of the value
-      let val_parts = String.split(value_and_rest, "\"")
-      if List.length(val_parts) >= 2 do
-        # Skip the first part (the old value), rejoin the rest with quotes
-        let rest_after_value = String.slice(value_and_rest, String.length(List.head(val_parts)) + 1, String.length(value_and_rest))
-        before <> search <> "[Filtered]\"" <> rest_after_value
-      else
-        before <> search <> "[Filtered]\"" <> value_and_rest
-      end
-    else
-      input
-    end
-  else
+  if !String.contains(String.lower(input), String.lower(search)) do
     input
+  else
+    # Keep original split behavior to preserve parity with existing matching rules.
+    scrub_key_with_exact_match(input, search)
   end
 end
 
