@@ -51,12 +51,12 @@ end
 # Parse the envelope header (first line of the envelope).
 # Extracts: event_id, sdk_name, sdk_version, sent_at
 fn parse_envelope_header(header_line :: String) -> Map<String, String>!String do
-  let trimmed = String.trim(header_line)
+  let trimmed = header_line |> String.trim()
   if trimmed == "" do
     Err("empty envelope header")
   else
-    let event_id = json_field(trimmed, "event_id")
-    let sent_at = json_field(trimmed, "sent_at")
+    let event_id = trimmed |> json_field("event_id")
+    let sent_at = trimmed |> json_field("sent_at")
     let sdk_name = json_nested_string_field(trimmed, "sdk", "name")
     let sdk_version = json_nested_string_field(trimmed, "sdk", "version")
     Ok(%{"event_id" => event_id, "sent_at" => sent_at, "sdk_name" => sdk_name, "sdk_version" => sdk_version})
@@ -69,12 +69,12 @@ end
 
 # Parse an item header line. Extracts: type, length (optional).
 fn parse_item_header(header_line :: String) -> Map<String, String>!String do
-  let trimmed = String.trim(header_line)
+  let trimmed = header_line |> String.trim()
   if trimmed == "" do
     Err("empty item header")
   else
-    let item_type = json_field(trimmed, "type")
-    let item_length = json_field(trimmed, "length")
+    let item_type = trimmed |> json_field("type")
+    let item_length = trimmed |> json_field("length")
     Ok(%{"type" => item_type, "length" => item_length})
   end
 end
@@ -160,13 +160,13 @@ fn extract_exception_data(event_json :: String) -> Map<String, String> do
   let exception_type = extract_exception_type(event_json)
   let exception_value = extract_exception_value(event_json)
   let stacktrace_json = extract_frames_json(event_json)
-  let platform = json_field(event_json, "platform")
-  let level = json_field(event_json, "level")
-  let environment = json_field(event_json, "environment")
-  let release = json_field(event_json, "release")
-  let server_name = json_field(event_json, "server_name")
-  let message = json_field(event_json, "message")
-  let timestamp_str = json_field(event_json, "timestamp")
+  let platform = event_json |> json_field("platform")
+  let level = event_json |> json_field("level")
+  let environment = event_json |> json_field("environment")
+  let release = event_json |> json_field("release")
+  let server_name = event_json |> json_field("server_name")
+  let message = event_json |> json_field("message")
+  let timestamp_str = event_json |> json_field("timestamp")
   let tags_json = extract_json_object(event_json, "tags")
   let extra_json = extract_json_object(event_json, "extra")
   let contexts_json = extract_json_object(event_json, "contexts")
@@ -219,34 +219,35 @@ end
 # Returns the event_id on success.
 fn process_event_item(pool :: PoolHandle, project_id :: String, org_id :: String, event_id :: String, event_json :: String, sdk_name :: String, sdk_version :: String) -> String!String do
   let data = extract_exception_data(event_json)
-  let exception_type = Map.get(data, "exception_type")
-  let exception_value = Map.get(data, "exception_value")
-  let stacktrace_json = Map.get(data, "stacktrace_json")
-  let platform = Map.get(data, "platform")
-  let level = Map.get(data, "level")
-  let environment = Map.get(data, "environment")
-  let release = Map.get(data, "release")
-  let server_name = Map.get(data, "server_name")
-  let message = Map.get(data, "message")
-  let timestamp_val = Map.get(data, "timestamp")
-  let tags_json = Map.get(data, "tags_json")
-  let extra_json = Map.get(data, "extra_json")
-  let contexts_json = Map.get(data, "contexts_json")
+  let exception_type = data |> Map.get("exception_type")
+  let exception_value = data |> Map.get("exception_value")
+  let stacktrace_json = data |> Map.get("stacktrace_json")
+  let platform = data |> Map.get("platform")
+  let level = data |> Map.get("level")
+  let environment = data |> Map.get("environment")
+  let release = data |> Map.get("release")
+  let server_name = data |> Map.get("server_name")
+  let message = data |> Map.get("message")
+  let timestamp_val = data |> Map.get("timestamp")
+  let tags_json = data |> Map.get("tags_json")
+  let extra_json = data |> Map.get("extra_json")
+  let contexts_json = data |> Map.get("contexts_json")
   # Step 1: Scrub PII from all string fields
   let scrubbed = scrub_event_fields(pool, org_id, message, exception_value, stacktrace_json, tags_json, extra_json, contexts_json, server_name)?
-  let s_message = Map.get(scrubbed, "message")
-  let s_exception_value = Map.get(scrubbed, "exception_value")
-  let s_stacktrace_json = Map.get(scrubbed, "stacktrace_json")
-  let s_tags_json = Map.get(scrubbed, "tags_json")
-  let s_extra_json = Map.get(scrubbed, "extra_json")
-  let s_contexts_json = Map.get(scrubbed, "contexts_json")
-  let s_server_name = Map.get(scrubbed, "server_name")
+  let s_message = scrubbed |> Map.get("message")
+  let s_exception_value = scrubbed |> Map.get("exception_value")
+  let s_stacktrace_json = scrubbed |> Map.get("stacktrace_json")
+  let s_tags_json = scrubbed |> Map.get("tags_json")
+  let s_extra_json = scrubbed |> Map.get("extra_json")
+  let s_contexts_json = scrubbed |> Map.get("contexts_json")
+  let s_server_name = scrubbed |> Map.get("server_name")
   # Step 2: Compute fingerprint AFTER scrubbing (per RESEARCH.md)
-  let fingerprint = compute_fingerprint(exception_type, s_stacktrace_json)
+  let fingerprint = s_stacktrace_json |2> compute_fingerprint(exception_type)
   # Step 3: Upsert issue by fingerprint
   let title = build_issue_title(exception_type, s_exception_value)
-  let issue_result = upsert_issue(pool, project_id, fingerprint, title, level)?
-  let issue_id = Map.get(issue_result, "id")
+  let issue_result_raw = fingerprint |3> upsert_issue(pool, project_id, title, level)
+  let issue_result = issue_result_raw?
+  let issue_id = issue_result |> Map.get("id")
   # Step 4: Insert event
   let ts = if timestamp_val == "now" do "now()" else timestamp_val end
   let _ = insert_event(pool, project_id, issue_id, event_id, ts, platform, level, s_message, exception_type, s_exception_value, s_stacktrace_json, environment, release, s_server_name, s_tags_json, s_extra_json, s_contexts_json, sdk_name, sdk_version, fingerprint)?
@@ -270,7 +271,7 @@ fn process_item_pair(pool :: PoolHandle, project_id :: String, org_id :: String,
   case item_header_result do
     Err(_) -> Ok(item_progress(envelope_event_id, first_event_id))
     Ok(item_header) -> do
-      let item_type = Map.get(item_header, "type")
+      let item_type = item_header |> Map.get("type")
       if !is_processable_type(item_type) do
         Ok(item_progress(envelope_event_id, first_event_id))
       else
@@ -298,8 +299,8 @@ fn process_items(pool :: PoolHandle, project_id :: String, org_id :: String, env
     let header_line = List.get(lines, idx)
     let payload_line = List.get(lines, idx + 1)
     let progress = process_item_pair(pool, project_id, org_id, envelope_event_id, header_line, payload_line, sdk_name, sdk_version, first_event_id)?
-    let next_envelope_event_id = Map.get(progress, "next_envelope_event_id")
-    let next_first_event_id = Map.get(progress, "next_first_event_id")
+    let next_envelope_event_id = progress |> Map.get("next_envelope_event_id")
+    let next_first_event_id = progress |> Map.get("next_first_event_id")
     process_items(pool, project_id, org_id, next_envelope_event_id, lines, idx + 2, total_lines, sdk_name, sdk_version, next_first_event_id)
   end
 end
@@ -315,9 +316,9 @@ fn process_envelope_payload(pool :: PoolHandle, project_id :: String, org_id :: 
     case env_header_result do
       Err(_) -> HTTP.response(400, json { error: "invalid envelope header" })
       Ok(env_header) -> do
-        let envelope_event_id = Map.get(env_header, "event_id")
-        let sdk_name = Map.get(env_header, "sdk_name")
-        let sdk_version = Map.get(env_header, "sdk_version")
+        let envelope_event_id = env_header |> Map.get("event_id")
+        let sdk_name = env_header |> Map.get("sdk_name")
+        let sdk_version = env_header |> Map.get("sdk_version")
         let event_id_to_use = if envelope_event_id != "" do envelope_event_id else Crypto.uuid4() end
         let process_result = process_items(pool, project_id, org_id, event_id_to_use, lines, 1, num_lines, sdk_name, sdk_version, "")
         case process_result do
@@ -355,10 +356,9 @@ pub fn handle_sentry_envelope(pool :: PoolHandle, request) -> Response do
   case preflight do
     Err(response) -> response
     Ok(ctx) -> do
-      let project_id = Map.get(ctx, "project_id")
-      let org_id = Map.get(ctx, "org_id")
-      let trimmed_body = Map.get(ctx, "trimmed_body")
-      process_envelope_payload(pool, project_id, org_id, trimmed_body)
+      let project_id = ctx |> Map.get("project_id")
+      let org_id = ctx |> Map.get("org_id")
+      ctx |> Map.get("trimmed_body") |4> process_envelope_payload(pool, project_id, org_id)
     end
   end
 end
