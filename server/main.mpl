@@ -8,6 +8,8 @@ from Src.Auth.Oauth import google_oauth_start, google_oauth_callback
 from Src.Org.Handlers import handle_create_org, handle_list_orgs, handle_get_org
 from Src.Org.Invites import create_invite_handler, accept_invite_handler, list_invites_handler, revoke_invite_handler
 from Src.Project.Projects import create_project_handler, list_projects_handler, create_api_key_handler, list_api_keys_handler, revoke_api_key_handler
+from Src.Ingest.Envelope import handle_sentry_envelope
+from Src.Ingest.Health import handle_health_ingest
 
 fn start_server(pool, port :: Int) do
   let router = HTTP.router()
@@ -73,6 +75,14 @@ fn start_server(pool, port :: Int) do
     end)
     |> HTTP.on_post("/api/orgs/:org_id/api-keys/:key_id/revoke", fn(request) do
       revoke_api_key_handler(pool, request)
+    end)
+    # Ingestion endpoints (API key auth, not session auth)
+    |> HTTP.on_post("/api/:project_id/envelope/", fn(request) do
+      handle_sentry_envelope(pool, request)
+    end)
+    # Ingestion health endpoint
+    |> HTTP.on_get("/health/ingest", fn(request) do
+      handle_health_ingest(pool, request)
     end)
 
   HTTP.serve(router, port)
