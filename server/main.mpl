@@ -9,6 +9,8 @@ from Src.Org.Handlers import handle_create_org, handle_list_orgs, handle_get_org
 from Src.Org.Invites import create_invite_handler, accept_invite_handler, list_invites_handler, revoke_invite_handler
 from Src.Project.Projects import create_project_handler, list_projects_handler, create_api_key_handler, list_api_keys_handler, revoke_api_key_handler
 from Src.Ingest.Envelope import handle_sentry_envelope
+from Src.Ingest.Otlp import handle_otlp_logs, handle_otlp_traces, handle_otlp_metrics
+from Src.Ingest.Generic import handle_generic_event
 from Src.Ingest.Health import handle_health_ingest
 
 fn start_server(pool, port :: Int) do
@@ -79,6 +81,22 @@ fn start_server(pool, port :: Int) do
     # Ingestion endpoints (API key auth, not session auth)
     |> HTTP.on_post("/api/:project_id/envelope/", fn(request) do
       handle_sentry_envelope(pool, request)
+    end)
+    # OTLP/HTTP ingestion endpoints (API key auth via Bearer token)
+    # Routes on same port (8080) with path-based routing.
+    # Production deployments can use reverse proxy to map port 4318 to these paths.
+    |> HTTP.on_post("/v1/logs", fn(request) do
+      handle_otlp_logs(pool, request)
+    end)
+    |> HTTP.on_post("/v1/traces", fn(request) do
+      handle_otlp_traces(pool, request)
+    end)
+    |> HTTP.on_post("/v1/metrics", fn(request) do
+      handle_otlp_metrics(pool, request)
+    end)
+    # Generic JSON API (API key auth via Bearer token)
+    |> HTTP.on_post("/api/:project_id/events", fn(request) do
+      handle_generic_event(pool, request)
     end)
     # Ingestion health endpoint
     |> HTTP.on_get("/health/ingest", fn(request) do

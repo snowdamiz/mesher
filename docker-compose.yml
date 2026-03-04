@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "${HTTP_PORT:-8080}:8080"
+      - "${OTLP_PORT:-4318}:8080"
     environment:
       DATABASE_URL: "postgres://mesh:mesh@timescaledb:5432/mesher"
       VALKEY_URL: "valkey://valkey:6379"
