@@ -10,18 +10,17 @@ from Src.Storage.Queries import authenticate_user, create_session, delete_sessio
 # Extract session value from raw cookie substring.
 fn extract_session_value(raw_val :: String) -> String do
   if String.contains(raw_val, ";") do
-    let parts = String.split(raw_val, ";")
-    let first = List.head(parts)
-    String.trim(first)
+    let parts = raw_val |> String.split(";")
+    parts |> List.head() |> String.trim()
   else
-    String.trim(raw_val)
+    raw_val |> String.trim()
   end
 end
 
 # Parse mesher_session cookie value from cookie header string.
 fn parse_session_cookie(cookie_str :: String) -> String do
   if String.contains(cookie_str, "mesher_session=") do
-    let parts = String.split(cookie_str, "mesher_session=")
+    let parts = cookie_str |> String.split("mesher_session=")
     let raw_value = List.last(parts)
     extract_session_value(raw_value)
   else
@@ -42,16 +41,16 @@ fn parse_login_payload(request) -> Map<String, String>!String do
   case Json.parse(raw_body) do
     Err(_) -> Err("invalid_json")
     Ok(body) -> do
-      let email = Json.get(body, "email")
-      let password = Json.get(body, "password")
+      let email = body |> Json.get("email")
+      let password = body |> Json.get("password")
       Ok(%{"email" => email, "password" => password})
     end
   end
 end
 
 fn authenticate_login_payload(pool, payload :: Map<String, String>) -> Map<String, String>!String do
-  let email = Map.get(payload, "email")
-  let password = Map.get(payload, "password")
+  let email = payload |> Map.get("email")
+  let password = payload |> Map.get("password")
   case authenticate_user(pool, email, password) do
     Err(_) -> Err("invalid_credentials")
     Ok(user_row) -> Ok(user_row)
@@ -68,10 +67,12 @@ end
 
 fn execute_login(pool, request) -> Map<String, String>!String do
   let payload = parse_login_payload(request)?
-  let user_row = authenticate_login_payload(pool, payload)?
-  let user_id = Map.get(user_row, "id")
-  let user_email = Map.get(user_row, "email")
-  let token = create_login_token(pool, user_id)?
+  let user_row_result = payload |2> authenticate_login_payload(pool)
+  let user_row = user_row_result?
+  let user_id = user_row |> Map.get("id")
+  let user_email = user_row |> Map.get("email")
+  let token_result = user_id |2> create_login_token(pool)
+  let token = token_result?
   Ok(%{"email" => user_email, "token" => token})
 end
 
@@ -97,7 +98,7 @@ fn maybe_delete_session_from_cookie(pool, cookie_header) do
     Some(cookie_str) -> do
       let token = parse_session_cookie(cookie_str)
       if token != "" do
-        let _ = delete_session(pool, token)
+        let _ = token |2> delete_session(pool)
       else
         ()
       end
@@ -131,8 +132,8 @@ pub fn handle_login(pool, request) -> Response do
   case execute_login(pool, request) do
     Err(reason) -> login_error_response(reason)
     Ok(result) -> do
-      let user_email = Map.get(result, "email")
-      let token = Map.get(result, "token")
+      let user_email = result |> Map.get("email")
+      let token = result |> Map.get("token")
       HTTP.response_with_headers(200, json { email: user_email }, %{"Set-Cookie" => "mesher_session=" <> token <> "; HttpOnly; Path=/; SameSite=Lax; Max-Age=86400"})
     end
   end
@@ -140,8 +141,7 @@ end
 
 # POST /api/logout
 pub fn handle_logout(pool, request) -> Response do
-  let cookie = Request.header(request, "cookie")
-  let _ = maybe_delete_session_from_cookie(pool, cookie)
+  let _ = Request.header(request, "cookie") |2> maybe_delete_session_from_cookie(pool)
   HTTP.response_with_headers(200, json { status: "logged out" }, clear_logout_cookie())
 end
 
