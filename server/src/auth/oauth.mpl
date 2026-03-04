@@ -44,7 +44,8 @@ end
 # GET /api/auth/oauth/google
 pub fn google_oauth_start(pool, request) -> Response do
   let tier = Env.get("MESHER_TIER", "oss")
-  if tier != "saas" do
+  let cond = tier != "saas"
+  if cond do
     saas_only_error()
   else
     let state = Crypto.uuid4()
@@ -69,8 +70,8 @@ fn do_oauth_callback(pool, request) -> Response!String do
   let params = extract_oauth_params(request)?
   let code = Map.get(params, "code")
   let state = Map.get(params, "state")
-  let is_valid = validate_oauth_state(pool, state)?
-  if is_valid do
+  let cond = validate_oauth_state(pool, state)?
+  if cond do
     let _ = delete_oauth_state(pool, state)
     Ok(exchange_code_stub(pool, code))
   else
@@ -81,7 +82,8 @@ end
 # GET /api/auth/oauth/google/callback
 pub fn google_oauth_callback(pool, request) -> Response do
   let tier = Env.get("MESHER_TIER", "oss")
-  if tier != "saas" do
+  let cond = tier != "saas"
+  if cond do
     saas_only_error()
   else
     case do_oauth_callback(pool, request) do

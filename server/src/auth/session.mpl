@@ -108,7 +108,8 @@ end
 fn tier_gate(request, next) -> Response do
   let tier = Env.get("MESHER_TIER", "oss")
   let path = Request.path(request)
-  if String.starts_with(path, "/api/v1/ai/") && tier != "saas" do
+  let cond = String.starts_with(path, "/api/v1/ai/") && tier != "saas"
+  if cond do
     respond_saas_only()
   else
     next(request)

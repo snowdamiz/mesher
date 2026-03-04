@@ -4,7 +4,7 @@
   "scripts": {
     "dev:server": "meshc run server",
     "build:server": "meshc build server",
-    "test:server": "meshc test server",
+    "test:server": "cd server && meshc test",
     "migrate:status": "meshc migrate server status",
     "migrate:up": "meshc migrate server up",
     "dev:client": "npm --prefix client run dev",
