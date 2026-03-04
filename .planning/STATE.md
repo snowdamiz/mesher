@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-04T03:24:18.731Z"
-last_activity: 2026-03-04 - Completed Phase 02 Plan 01 (data layer foundation)
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-04T03:27:00Z"
+last_activity: 2026-03-04 - Completed Phase 02 Plan 02 (rate limiting and health endpoint)
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 19
-  completed_plans: 14
-  percent: 74
+  completed_plans: 15
+  percent: 79
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 2 (Error Ingestion Core) — Plan 01 complete, Plan 02 next
+**Current focus:** Phase 2 (Error Ingestion Core) — Plan 02 complete, Plan 03 next
 
 ## Current Position
 
 Phase: 02 of 9 (Error Ingestion Core)
-Plan: 2 of 6 in current phase
+Plan: 3 of 6 in current phase
 Status: In Progress
-Last activity: 2026-03-04 - Completed Phase 02 Plan 01 (data layer foundation)
+Last activity: 2026-03-04 - Completed Phase 02 Plan 02 (rate limiting and health endpoint)
 
-Progress: [███████░░░] 74%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 10min
-- Total execution time: 1.9 hours
+- Total execution time: 2.0 hours
 
 **By Phase:**
 
@@ -47,7 +47,7 @@ Progress: [███████░░░] 74%
 | 1.1 - ORM Migration | 4 | 8min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01.1-04 (2min), 01.2-01 (2min), 01.2-02 (5min), 01.2-03 (18min), 02-01 (3min)
+- Last 5 plans: 01.2-01 (2min), 01.2-02 (5min), 01.2-03 (18min), 02-01 (3min), 02-02 (7min)
 - Trend: accelerating
 
 | Plan | Duration | Tasks | Files |
@@ -68,6 +68,7 @@ Progress: [███████░░░] 74%
 | Phase 01.2-reorganize-repo-with-server-and-client-directories P02 | 5 min | 3 tasks | 9 files |
 | Phase 01.2-reorganize-repo-with-server-and-client-directories P03 | 18 min | 2 tasks | 3 files |
 | Phase 02 P01 | 3min | 2 tasks | 4 files |
+| Phase 02 P02 | 7min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,10 @@ Recent decisions affecting current work:
 - [02-01]: Events table has no PRIMARY KEY on id -- TimescaleDB hypertables require partitioning column in unique indexes
 - [02-01]: upsert_issue implements status reset (resolved/ignored -> open) via ON CONFLICT for regression detection
 - [02-01]: validate_api_key_for_ingest JOINs api_keys with projects to resolve project_id + org_id in one query
+- [02-02]: PostgreSQL-based rate limiting (not Valkey) -- Mesh runtime has no Valkey/Redis client module
+- [02-02]: Fail-open rate limiter -- DB check failure allows the request rather than blocking ingestion
+- [02-02]: Health endpoint reports degraded (200) when rate limiter is down, unavailable (503) only when DB is down
+- [02-02]: Mesh module blocks (module X do ... end) cannot be imported via `from Src.X import func` -- use Env.get() directly or unqualified pub fn
 
 ### Roadmap Evolution
 
@@ -155,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T03:23:01Z
-Stopped at: Completed 02-01-PLAN.md
-Resume file: .planning/phases/02-error-ingestion-core/02-02-PLAN.md
+Last session: 2026-03-04T03:27:00Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: .planning/phases/02-error-ingestion-core/02-03-PLAN.md
