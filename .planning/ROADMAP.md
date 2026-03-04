@@ -79,9 +79,17 @@ Plans:
   1. An existing Sentry SDK can be pointed at Mesher (`/api/{project_id}/envelope/`) without code changes and errors appear in the database
   2. An OTLP/HTTP client (protobuf or JSON) can send error events to port 4318 and they are stored with stack trace, message, severity, exception type, and metadata
   3. Events tagged with the same environment string (production, staging, development) are stored with that tag and can be distinguished in the database
-  4. The system deduplicates events into issues by fingerprint (exception type + normalized top 3–5 app frames, line numbers stripped); two events with the same logical error produce one issue, not two
+  4. The system deduplicates events into issues by fingerprint (exception type + normalized top 3-5 app frames, line numbers stripped); two events with the same logical error produce one issue, not two
   5. Per-org ingest rate limiting returns HTTP 429 with Retry-After when exceeded; `/health/ingest` reports pipeline health status
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 02-01-PLAN.md -- DB migration (events/issues/rate_limit_configs/scrub_rules) + event types + query functions
+- [ ] 02-02-PLAN.md -- Valkey spike + rate limiting module + health endpoint
+- [ ] 02-03-PLAN.md -- Ingestion auth (API key extraction/validation) + PII scrubber + fingerprinting
+- [ ] 02-04-PLAN.md -- Sentry envelope parser/handler + route wiring
+- [ ] 02-05-PLAN.md -- OTLP/HTTP JSON handler + generic JSON API + route wiring
+- [ ] 02-06-PLAN.md -- Integration test suite + onboarding UI + end-to-end verification
 
 ### Phase 3: Issue Management + REST API
 **Goal**: Users can view, filter, search, and manage the lifecycle of grouped error issues through a stable REST API
@@ -128,10 +136,10 @@ Plans:
 ### Phase 7: Frontend Polish + Deployment
 **Goal**: The complete Streem-2 UI is integrated and polished across all features, and the Docker Compose stack is validated end-to-end for a first-time self-hosted installation
 **Depends on**: Phase 6
-**Requirements**: (none — all v1 requirements are mapped in Phases 1–6 and 8–9; this phase integrates and completes the UI across all previously-delivered backend APIs)
+**Requirements**: (none — all v1 requirements are mapped in Phases 1-6 and 8-9; this phase integrates and completes the UI across all previously-delivered backend APIs)
 **Success Criteria** (what must be TRUE):
   1. A first-time user can run `docker compose up`, open the browser, register an account, create an org and project, and reach a working dashboard with setup instructions — not a blank or broken screen
-  2. Every feature built in Phases 1–6 has a complete Streem-2 UI: dashboard, issue list, issue detail, alert management, org/project settings, and API key management
+  2. Every feature built in Phases 1-6 has a complete Streem-2 UI: dashboard, issue list, issue detail, alert management, org/project settings, and API key management
   3. All data-loading states show skeleton loaders; all empty states show contextual setup instructions; live updates pause gracefully when a form or dialog is focused
 **Plans**: TBD
 
@@ -166,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundation + Toolchain Spike | 4/6 | In Progress | - |
 | 1.1. ORM Migration (INSERTED) | 4/4 | Complete | 2026-03-03 |
 | 1.2. Repo Reorganization (INSERTED) | 3/3 | Complete | 2026-03-04 |
-| 2. Error Ingestion Core | 0/TBD | Not started | - |
+| 2. Error Ingestion Core | 0/6 | Not started | - |
 | 3. Issue Management + REST API | 0/TBD | Not started | - |
 | 4. Metrics Ingestion + Dashboards | 0/TBD | Not started | - |
 | 5. Real-Time Push | 0/TBD | Not started | - |
