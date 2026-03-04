@@ -91,6 +91,16 @@ Plans:
 - [ ] 02-05-PLAN.md -- OTLP/HTTP JSON handler + generic JSON API + route wiring
 - [ ] 02-06-PLAN.md -- Integration test suite + onboarding UI + end-to-end verification
 
+### Phase 02.1: In the server, refactor ALL deeply nested functions, then build and test the server. It must compile and all tests must pass (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 2
+**Plans:** 1/3 plans executed
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 02.1 to break down)
+
 ### Phase 3: Issue Management + REST API
 **Goal**: Users can view, filter, search, and manage the lifecycle of grouped error issues through a stable REST API
 **Depends on**: Phase 2

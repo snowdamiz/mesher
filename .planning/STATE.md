@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-06-PLAN.md (Phase 02 final plan)
-last_updated: "2026-03-04T04:01:36.129Z"
-last_activity: 2026-03-04 - Completed Phase 02 Plan 06 (integration tests + onboarding UI)
+stopped_at: Completed 02.1-02-PLAN.md
+last_updated: "2026-03-04T06:01:37.790Z"
+last_activity: 2026-03-04 - Completed Phase 02.1 Plan 02 (auth nesting refactor parity gates)
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 4
-  total_plans: 19
-  completed_plans: 19
-  percent: 95
+  total_plans: 22
+  completed_plans: 20
+  percent: 91
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 2 (Error Ingestion Core) -- COMPLETE (all 6 plans done, Task 3 checkpoint pending human verify)
+**Current focus:** Phase 02.1 (server deep nesting refactor) -- IN PROGRESS
 
 ## Current Position
 
-Phase: 02 of 9 (Error Ingestion Core) -- COMPLETE
-Plan: 6 of 6 in current phase (COMPLETE)
-Status: Phase Complete (pending Task 3 human verification)
-Last activity: 2026-03-04 - Completed Phase 02 Plan 06 (integration tests + onboarding UI)
+Phase: 02.1 of 12 (server deep nesting refactor) -- IN PROGRESS
+Plan: 2 of 3 in current phase (COMPLETE)
+Status: Executing Phase 02.1
+Last activity: 2026-03-04 - Completed Phase 02.1 Plan 02 (auth nesting refactor parity gates)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100%
 | Phase 02 P04 | 5min | 2 tasks | 3 files |
 | Phase 02 P05 | 9min | 2 tasks | 5 files |
 | Phase 02 P06 | 4min | 2 tasks | 2 files |
+| Phase 02.1 P02 | 4min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -151,11 +152,14 @@ Recent decisions affecting current work:
 - [Phase 02]: Default 1000 events/min rate limit hardcoded (Int.parse unavailable in Mesh)
 - [Phase 02-06]: File extension .tsx for ProjectSetup (JSX requires .tsx per existing Streem-2 frontend patterns)
 - [Phase 02-06]: Integration tests use direct SQL seeding via psql for test isolation; rate limit test verifies mechanism structurally
+- [Phase 02.1]: Mapped helper error tags back to existing auth response/status contracts to preserve behavior during flattening
+- [Phase 02.1]: Validated parity gates in a clean detached worktree due unrelated local ingest refactor edits in active workspace
 
 ### Roadmap Evolution
 
 - Phase 01.1 inserted after Phase 1: Update project to use Mesh built-in ORM for migrations and queries (URGENT) -- COMPLETE
 - Phase 01.2 inserted after Phase 1: Reorganize repo with server and client directories (URGENT) -- COMPLETE
+- Phase 02.1 inserted after Phase 02: In the server, refactor ALL deeply nested functions, then build and test the server. It must compile and all tests must pass (URGENT)
 
 ### Pending Todos
 
@@ -177,6 +181,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T04:01:36.126Z
-Stopped at: Completed 02-06-PLAN.md (Phase 02 final plan)
+Last session: 2026-03-04T06:01:37.788Z
+Stopped at: Completed 02.1-02-PLAN.md
 Resume file: None
