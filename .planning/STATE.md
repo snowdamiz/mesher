@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-03-04T03:53:01.788Z"
-last_activity: 2026-03-04 - Completed Phase 02 Plan 04 (Sentry envelope handler)
+stopped_at: Completed 02-06-PLAN.md (Phase 02 final plan)
+last_updated: "2026-03-04T04:01:36.129Z"
+last_activity: 2026-03-04 - Completed Phase 02 Plan 06 (integration tests + onboarding UI)
 progress:
   total_phases: 11
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 19
-  completed_plans: 18
-  percent: 89
+  completed_plans: 19
+  percent: 95
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 2 (Error Ingestion Core) — Plan 05 complete, Plan 06 next
+**Current focus:** Phase 2 (Error Ingestion Core) -- COMPLETE (all 6 plans done, Task 3 checkpoint pending human verify)
 
 ## Current Position
 
-Phase: 02 of 9 (Error Ingestion Core)
-Plan: 6 of 6 in current phase
-Status: In Progress
-Last activity: 2026-03-04 - Completed Phase 02 Plan 05 (OTLP + generic API handlers)
+Phase: 02 of 9 (Error Ingestion Core) -- COMPLETE
+Plan: 6 of 6 in current phase (COMPLETE)
+Status: Phase Complete (pending Task 3 human verification)
+Last activity: 2026-03-04 - Completed Phase 02 Plan 06 (integration tests + onboarding UI)
 
-Progress: [██████████] 95%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [██████████] 95%
 | Phase 02 P03 | 6min | 2 tasks | 3 files |
 | Phase 02 P04 | 5min | 2 tasks | 3 files |
 | Phase 02 P05 | 9min | 2 tasks | 5 files |
+| Phase 02 P06 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -148,6 +149,8 @@ Recent decisions affecting current work:
 - [Phase 02]: String-based JSON parsing for OTLP payloads (no Json.stringify in Mesh)
 - [Phase 02]: OTLP routes on same port 8080 with path routing; port 4318 mapped via docker-compose
 - [Phase 02]: Default 1000 events/min rate limit hardcoded (Int.parse unavailable in Mesh)
+- [Phase 02-06]: File extension .tsx for ProjectSetup (JSX requires .tsx per existing Streem-2 frontend patterns)
+- [Phase 02-06]: Integration tests use direct SQL seeding via psql for test isolation; rate limit test verifies mechanism structurally
 
 ### Roadmap Evolution
 
@@ -174,6 +177,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T03:52:53.948Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-03-04T04:01:36.126Z
+Stopped at: Completed 02-06-PLAN.md (Phase 02 final plan)
 Resume file: None
