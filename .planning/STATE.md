@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-04T01:35:39.478Z"
-last_activity: 2026-03-04 - Verified and completed Phase 01.2
+status: in_progress
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-04T03:24:18.731Z"
+last_activity: 2026-03-04 - Completed Phase 02 Plan 01 (data layer foundation)
 progress:
   total_phases: 11
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_plans: 19
+  completed_plans: 14
+  percent: 74
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** The easiest way to add full-stack observability (errors + infrastructure metrics) to any service — deployed with a single Docker Compose command, built natively for Mesh apps
-**Current focus:** Phase 01.2 COMPLETE — Next: Phase 2 (Error Ingestion Core)
+**Current focus:** Phase 2 (Error Ingestion Core) — Plan 01 complete, Plan 02 next
 
 ## Current Position
 
-Phase: 01.2 of 9 (Reorganize repo with server and client directories) -- COMPLETE
-Plan: 3 of 3 in current phase -- PHASE COMPLETE
-Status: Phase 01.2 Complete
-Last activity: 2026-03-04 - Verified and completed Phase 01.2
+Phase: 02 of 9 (Error Ingestion Core)
+Plan: 2 of 6 in current phase
+Status: In Progress
+Last activity: 2026-03-04 - Completed Phase 02 Plan 01 (data layer foundation)
 
-Progress: [████████████████████] 100%
+Progress: [███████░░░] 74%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 11min
-- Total execution time: 1.8 hours
+- Total plans completed: 14
+- Average duration: 10min
+- Total execution time: 1.9 hours
 
 **By Phase:**
 
@@ -47,7 +47,7 @@ Progress: [████████████████████] 100%
 | 1.1 - ORM Migration | 4 | 8min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01.1-03 (2min), 01.1-04 (2min), 01.2-01 (2min), 01.2-02 (5min), 01.2-03 (18min)
+- Last 5 plans: 01.1-04 (2min), 01.2-01 (2min), 01.2-02 (5min), 01.2-03 (18min), 02-01 (3min)
 - Trend: accelerating
 
 | Plan | Duration | Tasks | Files |
@@ -67,6 +67,7 @@ Progress: [████████████████████] 100%
 | Phase 01.2-reorganize-repo-with-server-and-client-directories P01 | 2min | 2 tasks | 33 files |
 | Phase 01.2-reorganize-repo-with-server-and-client-directories P02 | 5 min | 3 tasks | 9 files |
 | Phase 01.2-reorganize-repo-with-server-and-client-directories P03 | 18 min | 2 tasks | 3 files |
+| Phase 02 P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,10 @@ Recent decisions affecting current work:
 - [Phase 01.2-reorganize-repo-with-server-and-client-directories]: Compose service renamed from app to server with build context anchored at ./server to match ownership boundaries.
 - [Phase 01.2-reorganize-repo-with-server-and-client-directories]: Root package.json remains dependency-light and only provides scoped wrapper scripts for server/client workflows.
 - [Phase 01.2-reorganize-repo-with-server-and-client-directories]: Regression matrix validated in a clean detached worktree when dirty workspace edits caused non-phase build hangs.
+- [02-01]: IngestEvent derives only Json (not Schema/Row) -- in-memory normalization type, not a DB model
+- [02-01]: Events table has no PRIMARY KEY on id -- TimescaleDB hypertables require partitioning column in unique indexes
+- [02-01]: upsert_issue implements status reset (resolved/ignored -> open) via ON CONFLICT for regression detection
+- [02-01]: validate_api_key_for_ingest JOINs api_keys with projects to resolve project_id + org_id in one query
 
 ### Roadmap Evolution
 
@@ -150,6 +155,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T01:35:39.475Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-error-ingestion-core/02-CONTEXT.md
+Last session: 2026-03-04T03:23:01Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-error-ingestion-core/02-02-PLAN.md

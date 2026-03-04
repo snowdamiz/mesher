@@ -27,8 +27,8 @@
 
 ### ERR — Error Tracking & Issue Management
 
-- [ ] **ERR-01**: System captures error events with stack traces, message, severity level, exception type, and arbitrary metadata
-- [ ] **ERR-02**: System deduplicates events into issues by fingerprint: exception type + normalized top 3–5 application stack frames (line numbers stripped, framework frames excluded)
+- [x] **ERR-01**: System captures error events with stack traces, message, severity level, exception type, and arbitrary metadata
+- [x] **ERR-02**: System deduplicates events into issues by fingerprint: exception type + normalized top 3–5 application stack frames (line numbers stripped, framework frames excluded)
 - [ ] **ERR-03**: User can view the issue list grouped by fingerprint, showing occurrence count per issue
 - [ ] **ERR-04**: User can transition an issue through its lifecycle: open → resolved → ignored
 - [ ] **ERR-05**: System automatically re-opens a resolved or ignored issue when a new matching event is received
@@ -36,7 +36,7 @@
 - [ ] **ERR-07**: User can filter the issue list by project, severity level, environment, status, and time range
 - [ ] **ERR-08**: User can search issues by error message substring
 - [ ] **ERR-09**: User can view the error timeline for each issue: first seen timestamp, last seen timestamp, total occurrence count, and an occurrence sparkline
-- [ ] **ERR-10**: User can tag inbound events with an environment string (e.g., production, staging, development) and filter the issue list by environment
+- [x] **ERR-10**: User can tag inbound events with an environment string (e.g., production, staging, development) and filter the issue list by environment
 - [ ] **ERR-11**: New error events are visible in the dashboard within 5 seconds of ingestion (server-sent events push; no polling required)
 
 ### INGEST — Ingestion Protocols
@@ -169,9 +169,9 @@ These are **explicitly excluded** from Mesher. Reasons are provided to prevent r
 | INGEST-05 | Phase 2 | Pending |
 | INGEST-06 | Phase 2 | Pending |
 | INGEST-07 | Phase 2 | Pending |
-| ERR-01 | Phase 2 | Pending |
-| ERR-02 | Phase 2 | Pending |
-| ERR-10 | Phase 2 | Pending |
+| ERR-01 | Phase 2 | Complete |
+| ERR-02 | Phase 2 | Complete |
+| ERR-10 | Phase 2 | Complete |
 | ERR-03 | Phase 3 | Pending |
 | ERR-04 | Phase 3 | Pending |
 | ERR-05 | Phase 3 | Pending |
