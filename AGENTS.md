@@ -33,7 +33,7 @@ This is your single source of truth. The proprietary code has zero public docume
 <!-- gitnexus:start -->
 # GitNexus MCP
 
-This project is indexed by GitNexus as **mesher** (98 symbols, 153 relationships, 2 execution flows).
+This project is indexed by GitNexus as **mesher** (122 symbols, 178 relationships, 2 execution flows).
 
 ## Always Start Here
 
