@@ -29,12 +29,12 @@ fn parse_reset_request_email(request) -> String!String do
   let raw_body = Request.body(request)
   case Json.parse(raw_body) do
     Err(_) -> Err("invalid_json")
-    Ok(body_json) -> Ok(Json.get(body_json, "email"))
+    Ok(body_json) -> Ok(body_json |> Json.get("email"))
   end
 end
 
 fn send_reset_for_known_user(pool, email :: String, user_row :: Map<String, String>) -> Response do
-  let user_id = Map.get(user_row, "id")
+  let user_id = user_row |> Map.get("id")
   let token = Crypto.uuid4()
   let token_hash = Crypto.sha256(token)
   let _ = invalidate_existing_reset_tokens(pool, user_id)
@@ -49,8 +49,8 @@ fn parse_confirm_payload(request) -> Map<String, String>!String do
   case Json.parse(raw_body) do
     Err(_) -> Err("invalid_json")
     Ok(body_json) -> do
-      let token = Json.get(body_json, "token")
-      let new_password = Json.get(body_json, "new_password")
+      let token = body_json |> Json.get("token")
+      let new_password = body_json |> Json.get("new_password")
       Ok(%{"token" => token, "new_password" => new_password})
     end
   end
@@ -65,8 +65,8 @@ fn validate_confirm_token(pool, token :: String) -> Map<String, String>!String d
 end
 
 fn persist_password_reset(pool, token_row :: Map<String, String>, new_password :: String) -> Bool!String do
-  let user_id = Map.get(token_row, "user_id")
-  let token_id = Map.get(token_row, "id")
+  let user_id = token_row |> Map.get("user_id")
+  let token_id = token_row |> Map.get("id")
   case update_user_password(pool, user_id, new_password) do
     Err(_) -> Err("password_reset_failed")
     Ok(_) -> do
@@ -79,10 +79,11 @@ end
 
 fn execute_confirm_reset(pool, request) -> Bool!String do
   let payload = parse_confirm_payload(request)?
-  let token = Map.get(payload, "token")
-  let new_password = Map.get(payload, "new_password")
-  let token_row = validate_confirm_token(pool, token)?
-  persist_password_reset(pool, token_row, new_password)
+  let token = payload |> Map.get("token")
+  let new_password = payload |> Map.get("new_password")
+  let token_row_result = token |2> validate_confirm_token(pool)
+  let token_row = token_row_result?
+  new_password |3> persist_password_reset(pool, token_row)
 end
 
 fn confirm_reset_error_response(reason :: String) -> Response do
