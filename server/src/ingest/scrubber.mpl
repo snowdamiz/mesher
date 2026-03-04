@@ -34,7 +34,7 @@ fn build_filtered_value(before :: String, search :: String, value_and_rest :: St
 end
 
 fn scrub_key_with_exact_match(input :: String, search :: String) -> String do
-  let parts = String.split(input, search)
+  let parts = input |> String.split(search)
   if List.length(parts) < 2 do
     input
   else
@@ -57,23 +57,24 @@ end
 # Scrub all common sensitive JSON key patterns from a string.
 # Covers: password, secret, token, API key, auth, cookie, session, credit card, SSN.
 fn scrub_sensitive_keys(value :: String) -> String do
-  let v1 = scrub_json_key_value(value, "password")
-  let v2 = scrub_json_key_value(v1, "passwd")
-  let v3 = scrub_json_key_value(v2, "secret")
-  let v4 = scrub_json_key_value(v3, "token")
-  let v5 = scrub_json_key_value(v4, "api_key")
-  let v6 = scrub_json_key_value(v5, "apikey")
-  let v7 = scrub_json_key_value(v6, "access_token")
-  let v8 = scrub_json_key_value(v7, "refresh_token")
-  let v9 = scrub_json_key_value(v8, "authorization")
-  let v10 = scrub_json_key_value(v9, "cookie")
-  let v11 = scrub_json_key_value(v10, "session_id")
-  let v12 = scrub_json_key_value(v11, "sessionid")
-  let v13 = scrub_json_key_value(v12, "creditcard")
-  let v14 = scrub_json_key_value(v13, "credit_card")
-  let v15 = scrub_json_key_value(v14, "card_number")
-  let v16 = scrub_json_key_value(v15, "ssn")
-  scrub_json_key_value(v16, "social_security")
+  value |>
+    scrub_json_key_value("password") |>
+    scrub_json_key_value("passwd") |>
+    scrub_json_key_value("secret") |>
+    scrub_json_key_value("token") |>
+    scrub_json_key_value("api_key") |>
+    scrub_json_key_value("apikey") |>
+    scrub_json_key_value("access_token") |>
+    scrub_json_key_value("refresh_token") |>
+    scrub_json_key_value("authorization") |>
+    scrub_json_key_value("cookie") |>
+    scrub_json_key_value("session_id") |>
+    scrub_json_key_value("sessionid") |>
+    scrub_json_key_value("creditcard") |>
+    scrub_json_key_value("credit_card") |>
+    scrub_json_key_value("card_number") |>
+    scrub_json_key_value("ssn") |>
+    scrub_json_key_value("social_security")
 end
 
 # Scrub authorization header values from a string.
@@ -94,8 +95,8 @@ end
 
 # Apply a single custom scrub rule (literal string replacement).
 fn apply_single_rule(value :: String, rule :: Map<String, String>) -> String do
-  let rule_pattern = Map.get(rule, "pattern")
-  let replacement = Map.get(rule, "replacement")
+  let rule_pattern = rule |> Map.get("pattern")
+  let replacement = rule |> Map.get("replacement")
   String.replace(value, rule_pattern, replacement)
 end
 
@@ -112,14 +113,15 @@ end
 
 # Apply all custom rules from the list to a value.
 fn apply_all_custom_rules(value :: String, rules :: List<Map<String, String>>) -> String do
-  apply_rules_at_index(value, rules, 0, List.length(rules))
+  rules |> List.length() |4> apply_rules_at_index(value, rules, 0)
 end
 
 # Run a single string value through the full scrubbing pipeline.
 fn scrub_value(value :: String, custom_rules :: List<Map<String, String>>) -> String do
-  let v1 = scrub_sensitive_keys(value)
-  let v2 = scrub_auth_headers(v1)
-  apply_all_custom_rules(v2, custom_rules)
+  value |>
+    scrub_sensitive_keys() |>
+    scrub_auth_headers() |>
+    apply_all_custom_rules(custom_rules)
 end
 
 # Scrub all event string fields through the PII scrubbing pipeline.
@@ -135,12 +137,12 @@ end
 # Returns a map with scrubbed field values keyed by field name.
 pub fn scrub_event_fields(pool :: PoolHandle, org_id :: String, message :: String, exception_value :: String, stacktrace_json :: String, tags_json :: String, extra_json :: String, contexts_json :: String, server_name :: String) -> Map<String, String>!String do
   let custom_rules = get_active_scrub_rules(pool, org_id)?
-  let s_message = scrub_value(message, custom_rules)
-  let s_exception_value = scrub_value(exception_value, custom_rules)
-  let s_stacktrace_json = scrub_value(stacktrace_json, custom_rules)
-  let s_tags_json = scrub_value(tags_json, custom_rules)
-  let s_extra_json = scrub_value(extra_json, custom_rules)
-  let s_contexts_json = scrub_value(contexts_json, custom_rules)
-  let s_server_name = scrub_value(server_name, custom_rules)
+  let s_message = message |> scrub_value(custom_rules)
+  let s_exception_value = exception_value |> scrub_value(custom_rules)
+  let s_stacktrace_json = stacktrace_json |> scrub_value(custom_rules)
+  let s_tags_json = tags_json |> scrub_value(custom_rules)
+  let s_extra_json = extra_json |> scrub_value(custom_rules)
+  let s_contexts_json = contexts_json |> scrub_value(custom_rules)
+  let s_server_name = server_name |> scrub_value(custom_rules)
   Ok(%{"message" => s_message, "exception_value" => s_exception_value, "stacktrace_json" => s_stacktrace_json, "tags_json" => s_tags_json, "extra_json" => s_extra_json, "contexts_json" => s_contexts_json, "server_name" => s_server_name})
 end
