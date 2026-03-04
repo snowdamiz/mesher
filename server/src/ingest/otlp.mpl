@@ -16,35 +16,15 @@
 # All JSON parsing uses string-based extraction (no Json.stringify in Mesh).
 
 from Src.Ingest.Auth import extract_and_validate_api_key
+from Src.Ingest.Helpers import json_field
+from Src.Ingest.Middleware import validate_ingest_request
 from Src.Ingest.Scrubber import scrub_event_fields
 from Src.Ingest.Fingerprint import compute_fingerprint
-from Src.Ingest.Ratelimit import check_rate_limit
 from Src.Storage.Queries import upsert_issue, insert_event
 
 # ============================================================================
 # String-based JSON helpers
 # ============================================================================
-
-# Extract a string field value from JSON: "field":"value" -> value
-fn json_field(json_str :: String, field :: String) -> String do
-  let search = "\"" <> field <> "\":\""
-  if String.contains(json_str, search) do
-    let parts = String.split(json_str, search)
-    if List.length(parts) >= 2 do
-      let rest = List.last(parts)
-      let val_parts = String.split(rest, "\"")
-      if List.length(val_parts) > 0 do
-        List.head(val_parts)
-      else
-        ""
-      end
-    else
-      ""
-    end
-  else
-    ""
-  end
-end
 
 # Extract a numeric field value as string from JSON.
 # Handles both "field":123 and "field":"123" formats.
@@ -73,46 +53,41 @@ end
 
 # Extract a named OTLP attribute value.
 # OTLP attributes: [{"key":"name","value":{"stringValue":"val"}}]
-fn get_otlp_attr(attrs_str :: String, key :: String) -> String do
-  let search = "\"key\":\"" <> key <> "\""
-  if String.contains(attrs_str, search) do
-    let parts = String.split(attrs_str, search)
+fn extract_attr_value(rest :: String, marker :: String) -> String do
+  if String.contains(rest, marker) do
+    let parts = String.split(rest, marker)
     if List.length(parts) >= 2 do
-      let rest = List.last(parts)
-      if String.contains(rest, "\"stringValue\":\"") do
-        let sv_parts = String.split(rest, "\"stringValue\":\"")
-        if List.length(sv_parts) >= 2 do
-          let val_rest = List.last(sv_parts)
-          let end_parts = String.split(val_rest, "\"")
-          if List.length(end_parts) > 0 do
-            List.head(end_parts)
-          else
-            ""
-          end
-        else
-          ""
-        end
-      else if String.contains(rest, "\"intValue\":\"") do
-        let iv_parts = String.split(rest, "\"intValue\":\"")
-        if List.length(iv_parts) >= 2 do
-          let val_rest = List.last(iv_parts)
-          let end_parts = String.split(val_rest, "\"")
-          if List.length(end_parts) > 0 do
-            List.head(end_parts)
-          else
-            ""
-          end
-        else
-          ""
-        end
-      else
-        ""
-      end
+      let value_tail = List.last(parts)
+      let end_parts = String.split(value_tail, "\"")
+      if List.length(end_parts) > 0 do List.head(end_parts) else "" end
     else
       ""
     end
   else
     ""
+  end
+end
+
+fn extract_otlp_value(rest :: String) -> String do
+  let string_value = extract_attr_value(rest, "\"stringValue\":\"")
+  if string_value != "" do
+    string_value
+  else
+    extract_attr_value(rest, "\"intValue\":\"")
+  end
+end
+
+fn get_otlp_attr(attrs_str :: String, key :: String) -> String do
+  let search = "\"key\":\"" <> key <> "\""
+  if !String.contains(attrs_str, search) do
+    ""
+  else
+    let parts = String.split(attrs_str, search)
+    if List.length(parts) >= 2 do
+      extract_otlp_value(List.last(parts))
+    else
+      ""
+    end
   end
 end
 
@@ -201,12 +176,6 @@ end
 # Response helpers
 # ============================================================================
 
-# Return rate limit 429 response with Retry-After header.
-fn otlp_rate_limit_response(retry_val :: String) -> Response do
-  let headers = %{"Retry-After" => retry_val}
-  HTTP.response_with_headers(429, json { error: "rate limit exceeded" }, headers)
-end
-
 # Check Content-Type header for protobuf.
 fn is_protobuf_content(request) -> Bool do
   case Request.header(request, "content-type") do
@@ -292,54 +261,6 @@ fn process_log_records(pool :: PoolHandle, project_id :: String, org_id :: Strin
   end
 end
 
-# POST /v1/logs
-#
-# Accepts OTLP/HTTP JSON LogRecords with error severity and stores as events.
-# Extracts exception.type, exception.message, exception.stacktrace from attributes.
-# Returns OTLP-spec response: {"partialSuccess":{}}
-pub fn handle_otlp_logs(pool :: PoolHandle, request) -> Response do
-  # 1. Content-Type check (415 for protobuf)
-  let is_pb = is_protobuf_content(request)
-  if is_pb do
-    HTTP.response(415, json { error: "protobuf not supported, use application/json" })
-  else
-    # 2. Auth
-    let auth_result = extract_and_validate_api_key(pool, request)
-    case auth_result do
-      Err(msg) -> HTTP.response(401, json { error: msg })
-      Ok(auth) -> do
-        let project_id = Map.get(auth, "project_id")
-        let org_id = Map.get(auth, "org_id")
-        # 3. Rate limit check (default 1000 events/minute)
-        let rl = check_rate_limit(pool, org_id, 1000)
-        let allowed = Map.get(rl, "allowed")
-        if allowed == "false" do
-          let retry_val = Map.get(rl, "retry_after")
-          otlp_rate_limit_response(retry_val)
-        else
-          # 4. Parse body and process log records
-          let raw_body = Request.body(request)
-          if raw_body == "" do
-            HTTP.response(400, json { error: "empty request body" })
-          else
-            # Split on logRecords to find record sections
-            let record_sections = String.split(raw_body, "\"logRecords\":[")
-            let num_sections = List.length(record_sections)
-            if num_sections >= 2 do
-              let records_part = List.last(record_sections)
-              let individual_records = String.split(records_part, "},{")
-              let _ = process_log_records(pool, project_id, org_id, individual_records, raw_body, 0, List.length(individual_records))
-              HTTP.response(200, json { partialSuccess: %{} })
-            else
-              HTTP.response(200, json { partialSuccess: %{} })
-            end
-          end
-        end
-      end
-    end
-  end
-end
-
 # ============================================================================
 # OTLP Traces handler
 # ============================================================================
@@ -369,6 +290,56 @@ fn process_trace_exceptions(pool :: PoolHandle, project_id :: String, org_id :: 
   end
 end
 
+fn process_otlp_mode(pool :: PoolHandle, project_id :: String, org_id :: String, raw_body :: String, mode :: String) -> Int!String do
+  if mode == "logs" do
+    let record_sections = String.split(raw_body, "\"logRecords\":[")
+    let num_sections = List.length(record_sections)
+    if num_sections >= 2 do
+      let records_part = List.last(record_sections)
+      let records = String.split(records_part, "},{")
+      process_log_records(pool, project_id, org_id, records, raw_body, 0, List.length(records))
+    else
+      Ok(0)
+    end
+  else
+    let exception_sections = String.split(raw_body, "\"name\":\"exception\"")
+    let num_exceptions = List.length(exception_sections)
+    if num_exceptions >= 2 do
+      process_trace_exceptions(pool, project_id, org_id, exception_sections, raw_body, 1, num_exceptions)
+    else
+      Ok(0)
+    end
+  end
+end
+
+fn handle_otlp_mode(pool :: PoolHandle, request, mode :: String) -> Response do
+  let is_pb = is_protobuf_content(request)
+  if is_pb do
+    HTTP.response(415, json { error: "protobuf not supported, use application/json" })
+  else
+    let preflight = validate_ingest_request(pool, request, 401, "", "otlp", "empty request body")
+    case preflight do
+      Err(response) -> response
+      Ok(ctx) -> do
+        let project_id = Map.get(ctx, "project_id")
+        let org_id = Map.get(ctx, "org_id")
+        let raw_body = Map.get(ctx, "body")
+        let _ = process_otlp_mode(pool, project_id, org_id, raw_body, mode)
+        HTTP.response(200, json { partialSuccess: %{} })
+      end
+    end
+  end
+end
+
+# POST /v1/logs
+#
+# Accepts OTLP/HTTP JSON LogRecords with error severity and stores as events.
+# Extracts exception.type, exception.message, exception.stacktrace from attributes.
+# Returns OTLP-spec response: {"partialSuccess":{}}
+pub fn handle_otlp_logs(pool :: PoolHandle, request) -> Response do
+  handle_otlp_mode(pool, request, "logs")
+end
+
 # POST /v1/traces
 #
 # Accepts OTLP/HTTP JSON spans and extracts exception span events.
@@ -376,44 +347,7 @@ end
 #   exception.type, exception.message, exception.stacktrace
 # Returns OTLP-spec response: {"partialSuccess":{}}
 pub fn handle_otlp_traces(pool :: PoolHandle, request) -> Response do
-  # 1. Content-Type check (415 for protobuf)
-  let is_pb = is_protobuf_content(request)
-  if is_pb do
-    HTTP.response(415, json { error: "protobuf not supported, use application/json" })
-  else
-    # 2. Auth
-    let auth_result = extract_and_validate_api_key(pool, request)
-    case auth_result do
-      Err(msg) -> HTTP.response(401, json { error: msg })
-      Ok(auth) -> do
-        let project_id = Map.get(auth, "project_id")
-        let org_id = Map.get(auth, "org_id")
-        # 3. Rate limit check
-        let rl = check_rate_limit(pool, org_id, 1000)
-        let allowed = Map.get(rl, "allowed")
-        if allowed == "false" do
-          let retry_val = Map.get(rl, "retry_after")
-          otlp_rate_limit_response(retry_val)
-        else
-          # 4. Parse body and extract exception events from spans
-          let raw_body = Request.body(request)
-          if raw_body == "" do
-            HTTP.response(400, json { error: "empty request body" })
-          else
-            # Split on "name":"exception" to find exception event sections
-            let exception_sections = String.split(raw_body, "\"name\":\"exception\"")
-            let num_exceptions = List.length(exception_sections)
-            if num_exceptions >= 2 do
-              let _ = process_trace_exceptions(pool, project_id, org_id, exception_sections, raw_body, 1, num_exceptions)
-              HTTP.response(200, json { partialSuccess: %{} })
-            else
-              HTTP.response(200, json { partialSuccess: %{} })
-            end
-          end
-        end
-      end
-    end
-  end
+  handle_otlp_mode(pool, request, "traces")
 end
 
 # ============================================================================
