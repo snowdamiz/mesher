@@ -41,7 +41,7 @@ from Src.Storage.Queries import upsert_issue, insert_event
 fn extract_json_object(json_str :: String, field :: String) -> String do
   let search = "\"" <> field <> "\":{"
   if String.contains(json_str, search) do
-    let parts = String.split(json_str, search)
+    let parts = json_str |> String.split(search)
     if List.length(parts) >= 2 do
       let rest = List.last(parts)
       let result = find_matching_brace(rest, 1, 0, String.length(rest))
@@ -58,7 +58,7 @@ end
 fn extract_json_array(json_str :: String, field :: String) -> String do
   let search = "\"" <> field <> "\":["
   if String.contains(json_str, search) do
-    let parts = String.split(json_str, search)
+    let parts = json_str |> String.split(search)
     if List.length(parts) >= 2 do
       let rest = List.last(parts)
       let result = find_matching_bracket(rest, 1, 0, String.length(rest))
@@ -106,16 +106,17 @@ end
 fn store_generic_event(pool :: PoolHandle, project_id :: String, org_id :: String, message :: String, level :: String, environment :: String, release :: String, server_name :: String, exception_type :: String, exception_value :: String, stacktrace_json :: String, tags_json :: String, extra_json :: String) -> String!String do
   let event_id = Crypto.uuid4()
   let scrubbed = scrub_event_fields(pool, org_id, message, exception_value, stacktrace_json, tags_json, extra_json, "{}", server_name)?
-  let s_message = Map.get(scrubbed, "message")
-  let s_exception_value = Map.get(scrubbed, "exception_value")
-  let s_stacktrace_json = Map.get(scrubbed, "stacktrace_json")
-  let s_tags_json = Map.get(scrubbed, "tags_json")
-  let s_extra_json = Map.get(scrubbed, "extra_json")
-  let s_server_name = Map.get(scrubbed, "server_name")
-  let fingerprint = compute_fingerprint(exception_type, s_stacktrace_json)
+  let s_message = scrubbed |> Map.get("message")
+  let s_exception_value = scrubbed |> Map.get("exception_value")
+  let s_stacktrace_json = scrubbed |> Map.get("stacktrace_json")
+  let s_tags_json = scrubbed |> Map.get("tags_json")
+  let s_extra_json = scrubbed |> Map.get("extra_json")
+  let s_server_name = scrubbed |> Map.get("server_name")
+  let fingerprint = s_stacktrace_json |2> compute_fingerprint(exception_type)
   let title = build_generic_title(exception_type, s_exception_value, s_message)
-  let issue_row = upsert_issue(pool, project_id, fingerprint, title, level)?
-  let issue_id = Map.get(issue_row, "id")
+  let issue_row_result = fingerprint |3> upsert_issue(pool, project_id, title, level)
+  let issue_row = issue_row_result?
+  let issue_id = issue_row |> Map.get("id")
   let _ = insert_event(pool, project_id, issue_id, event_id, "now()", "generic", level, s_message, exception_type, s_exception_value, s_stacktrace_json, environment, release, s_server_name, s_tags_json, s_extra_json, "{}", "generic-api", "1.0", fingerprint)?
   Ok(event_id)
 end
@@ -128,13 +129,13 @@ fn process_generic_event(pool :: PoolHandle, project_id :: String, org_id :: Str
     if message == "" do
       Ok(HTTP.response(400, json { error: "message is required" }))
     else
-      let level = normalize_level(json_field(trimmed, "level"))
-      let environment = normalize_environment(json_field(trimmed, "environment"))
-      let release = json_field(trimmed, "release")
-      let server_name = json_field(trimmed, "server_name")
+      let level = trimmed |> json_field("level") |> normalize_level()
+      let environment = trimmed |> json_field("environment") |> normalize_environment()
+      let release = trimmed |> json_field("release")
+      let server_name = trimmed |> json_field("server_name")
       let exception_obj = extract_json_object(trimmed, "exception")
-      let exception_type = json_field(exception_obj, "type")
-      let exception_value = json_field(exception_obj, "value")
+      let exception_type = exception_obj |> json_field("type")
+      let exception_value = exception_obj |> json_field("value")
       let stacktrace_json = extract_json_array(exception_obj, "stacktrace")
       let tags_json = extract_json_object(trimmed, "tags")
       let extra_json = extract_json_object(trimmed, "extra")
@@ -164,10 +165,9 @@ pub fn handle_generic_event(pool :: PoolHandle, request) -> Response do
   case preflight do
     Err(response) -> response
     Ok(ctx) -> do
-      let project_id = Map.get(ctx, "project_id")
-      let org_id = Map.get(ctx, "org_id")
-      let trimmed = Map.get(ctx, "trimmed_body")
-      let process_result = process_generic_event(pool, project_id, org_id, trimmed)
+      let project_id = ctx |> Map.get("project_id")
+      let org_id = ctx |> Map.get("org_id")
+      let process_result = ctx |> Map.get("trimmed_body") |4> process_generic_event(pool, project_id, org_id)
       case process_result do
         Ok(response) -> response
         Err(_) -> HTTP.response(500, json { error: "internal error" })
